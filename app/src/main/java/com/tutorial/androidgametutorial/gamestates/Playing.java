@@ -43,6 +43,14 @@ public class Playing extends BaseState implements GameStateInterface {
     private Entity[] listOfDrawables;
     private boolean listOfEntitiesMade;
 
+    // thêm
+    private RectF playerAttackBoxWorld = null;
+    private float playerAttackRotationDeg = 0f;
+    private boolean playerAttackActive = false;
+    private long playerAttackStartTime = 0L;
+    private static final long PLAYER_ATTACK_DURATION_MS = 400;      // tổng thời gian animation (ms)
+    private static final long PLAYER_ATTACK_HIT_WINDOW_MS = 180;    // thời điểm gây sát thương (ms)
+
     public Playing(Game game) {
         super(game);
 
@@ -61,6 +69,15 @@ public class Playing extends BaseState implements GameStateInterface {
         healthBarRed = new Paint();
         healthBarBlack = new Paint();
         initHealthBars();
+    }
+
+    // Helper to get direction to target
+    private int getDirectionToTarget(float dx, float dy) {
+        if (Math.abs(dx) > Math.abs(dy)) {
+            return dx > 0 ? GameConstants.Face_Dir.RIGHT : GameConstants.Face_Dir.LEFT;
+        } else {
+            return dy > 0 ? GameConstants.Face_Dir.DOWN : GameConstants.Face_Dir.UP;
+        }
     }
 
     private void initHealthBars() {
@@ -182,12 +199,9 @@ public class Playing extends BaseState implements GameStateInterface {
 
                     if (s.getCurrentHealth() <= 0)
                         s.setSkeletonInactive();
-
-
 //                    s.setActive(false);
                 }
 //
-
         player.setAttackChecked(true);
     }
 
@@ -244,7 +258,7 @@ public class Playing extends BaseState implements GameStateInterface {
     public void drawCharacter(Canvas canvas, Character c) {
         canvas.drawBitmap(Weapons.SHADOW.getWeaponImg(), c.getHitbox().left + cameraX, c.getHitbox().bottom - 5 * GameConstants.Sprite.SCALE_MULTIPLIER + cameraY, null);
         canvas.drawBitmap(c.getGameCharType().getSprite(c.getAniIndex(), c.getFaceDir()), c.getHitbox().left + cameraX - X_DRAW_OFFSET, c.getHitbox().top + cameraY - GameConstants.Sprite.Y_DRAW_OFFSET, null);
-//        canvas.drawRect(c.getHitbox().left + cameraX, c.getHitbox().top + cameraY, c.getHitbox().right + cameraX, c.getHitbox().bottom + cameraY, redPaint);
+        canvas.drawRect(c.getHitbox().left + cameraX, c.getHitbox().top + cameraY, c.getHitbox().right + cameraX, c.getHitbox().bottom + cameraY, redPaint);
         if (c.isAttacking())
             drawEnemyWeapon(canvas, c);
 
@@ -263,12 +277,11 @@ public class Playing extends BaseState implements GameStateInterface {
         float fullBarWidth = c.getHitbox().width();
         float percentOfMaxHealth = (float) c.getCurrentHealth() / c.getMaxHealth();
         float barWidth = fullBarWidth * percentOfMaxHealth;
-        float xDelta = (fullBarWidth - barWidth) / 2.0f;
 
-
-        canvas.drawLine(c.getHitbox().left + cameraX + xDelta,
+        // Draw the red health bar from left to right, shrinking from the right as health decreases
+        canvas.drawLine(c.getHitbox().left + cameraX,
                 c.getHitbox().top + cameraY - 5 * GameConstants.Sprite.SCALE_MULTIPLIER,
-                c.getHitbox().left + cameraX + xDelta + barWidth,
+                c.getHitbox().left + cameraX + barWidth,
                 c.getHitbox().top + cameraY - 5 * GameConstants.Sprite.SCALE_MULTIPLIER, healthBarRed);
     }
 
@@ -337,4 +350,5 @@ public class Playing extends BaseState implements GameStateInterface {
     public PlayingUI getPlayingUI() {
         return playingUI;
     }
+
 }

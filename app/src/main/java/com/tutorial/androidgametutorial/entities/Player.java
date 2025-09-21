@@ -7,6 +7,8 @@ import android.graphics.PointF;
 
 public class Player extends Character {
 
+    private long lastAttackTime = 0;
+    private long attackCooldown = 500; // milliseconds
 
     public Player() {
         super(new PointF(GAME_WIDTH / 2, GAME_HEIGHT / 2), GameCharacters.PLAYER);
@@ -17,6 +19,18 @@ public class Player extends Character {
         if (movePlayer)
             updateAnimation();
         updateWepHitbox();
+    }
+
+    public boolean canAttack() {
+        return System.currentTimeMillis() - lastAttackTime >= attackCooldown;
+    }
+
+    public void setLastAttackTime() {
+        lastAttackTime = System.currentTimeMillis();
+    }
+
+    public void setAttackCooldown(long cooldown) {
+        attackCooldown = cooldown;
     }
 
 

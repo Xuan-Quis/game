@@ -16,7 +16,8 @@ public class PlayingUI {
     //For UI
     private final PointF joystickCenterPos = new PointF(250, 800);
     private final PointF attackBtnCenterPos = new PointF(1700, 800);
-    private final float radius = 150;
+    private final int radius = 120; // existing joystick radius
+    private final int attackBtnRadius = 80; // smaller attack button radius
     private final Paint circlePaint;
 
     //For Multitouch
@@ -51,7 +52,7 @@ public class PlayingUI {
 
     private void drawUI(Canvas c) {
         c.drawCircle(joystickCenterPos.x, joystickCenterPos.y, radius, circlePaint);
-        c.drawCircle(attackBtnCenterPos.x, attackBtnCenterPos.y, radius, circlePaint);
+        c.drawCircle(attackBtnCenterPos.x, attackBtnCenterPos.y, attackBtnRadius, circlePaint);
 
         c.drawBitmap(
                 ButtonImages.PLAYING_MENU.getBtnImg(btnMenu.isPushed(btnMenu.getPointerId())),
