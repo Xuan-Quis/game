@@ -1,6 +1,7 @@
 package com.tutorial.androidgametutorial.main;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -45,14 +46,17 @@ public class Game {
         playing = new Playing(this);
         deathScreen = new DeathScreen(this);
 
-        // Initialize MediaPlayer for background music with proper error handling
+        // Initialize MediaPlayer for background music from assets folder
         try {
-            backgroundMusic = MediaPlayer.create(context, R.raw.background);
-            if (backgroundMusic != null) {
-                backgroundMusic.setLooping(true);
-            }
+            AssetFileDescriptor afd = context.getAssets().openFd("background.mp3");
+            backgroundMusic = new MediaPlayer();
+            backgroundMusic.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            backgroundMusic.prepare();
+            backgroundMusic.setLooping(true);
+            backgroundMusic.setVolume(0.5f, 0.5f);
+            afd.close();
         } catch (Exception e) {
-            System.err.println("Error initializing MediaPlayer: " + e.getMessage());
+            System.err.println("Error initializing MediaPlayer from assets: " + e.getMessage());
             backgroundMusic = null;
         }
 
@@ -70,19 +74,29 @@ public class Game {
     }
 
     public void update(double delta) {
-        switch (currentGameState) {
-            case MENU -> menu.update(delta);
-            case PLAYING -> {
-                playing.update(delta);
-                // Start background music when entering gameplay, with null check
-                if (isMusicOn && backgroundMusic != null && !backgroundMusic.isPlaying()) {
-                    try {
-                        backgroundMusic.start();
-                    } catch (Exception e) {
-                        System.err.println("Error starting background music: " + e.getMessage());
-                    }
+        // Only play background music in PLAYING state
+        if (currentGameState == GameState.PLAYING) {
+            if (isMusicOn && backgroundMusic != null && !backgroundMusic.isPlaying()) {
+                try {
+                    backgroundMusic.start();
+                } catch (Exception e) {
+                    System.err.println("Error starting background music: " + e.getMessage());
                 }
             }
+        } else {
+            // Pause music if not in PLAYING state
+            if (backgroundMusic != null && backgroundMusic.isPlaying()) {
+                try {
+                    backgroundMusic.pause();
+                } catch (Exception e) {
+                    System.err.println("Error pausing background music: " + e.getMessage());
+                }
+            }
+        }
+
+        switch (currentGameState) {
+            case MENU -> menu.update(delta);
+            case PLAYING -> playing.update(delta);
             case DEATH_SCREEN -> deathScreen.update(delta);
         }
     }
@@ -97,7 +111,6 @@ public class Game {
             case PLAYING -> {
                 playing.render(c);
 
-                // Draw buttons with smaller images only in gameplay
                 if (musicIcon != null) {
                     Bitmap scaledMusicIcon = Bitmap.createScaledBitmap(musicIcon, 64, 64, false);
                     c.drawBitmap(scaledMusicIcon, toggleMusicButton.getHitbox().left, toggleMusicButton.getHitbox().top, null);
