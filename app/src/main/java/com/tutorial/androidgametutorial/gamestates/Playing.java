@@ -51,6 +51,7 @@ public class Playing extends BaseState implements GameStateInterface {
     private SoundPool soundPool;
     private int swordHitSoundId;
     private int playerHitWallSoundId;
+   private boolean isSwordSoundEnabled = true; // Add this line
 
 
     private ArrayList<Projectile> projectiles = new ArrayList<>();
@@ -413,8 +414,15 @@ private void checkPlayerAttack() {
     }
 
     private void playSwordHit() {
-        soundPool.play(swordHitSoundId, 1, 1, 1, 0, 1f);
+        if (isSwordSoundEnabled) { // Check the variable before playing sound
+            soundPool.play(swordHitSoundId, 1, 1, 1, 0, 1f);
+        }
     }
+
+    public void setSwordSoundEnabled(boolean enabled) { // Add this method
+        isSwordSoundEnabled = enabled;
+    }
+
     public void dispose() {
         if (soundPool != null) {
             soundPool.release();

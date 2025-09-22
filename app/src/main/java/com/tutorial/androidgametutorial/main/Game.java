@@ -1,14 +1,20 @@
 package com.tutorial.androidgametutorial.main;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.media.MediaPlayer;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
+import com.tutorial.androidgametutorial.R;
 import com.tutorial.androidgametutorial.gamestates.DeathScreen;
 import com.tutorial.androidgametutorial.gamestates.Menu;
 import com.tutorial.androidgametutorial.gamestates.Playing;
+import com.tutorial.androidgametutorial.ui.CustomButton;
 
 public class Game {
 
@@ -20,6 +26,13 @@ public class Game {
     private GameState currentGameState = GameState.MENU;
 
     private Context context;
+    private MediaPlayer backgroundMusic;
+    private CustomButton toggleMusicButton, toggleSwordSoundButton;
+    private boolean isMusicOn = true, isSwordSoundOn = true;
+
+    // Update toggle buttons to use images for music and sound
+    private Bitmap musicIcon, soundIcon;
+
     public Game(SurfaceHolder holder, Context context) {
         this.holder = holder;
         this.context = context;
@@ -27,11 +40,49 @@ public class Game {
         initGameStates();
     }
 
+    private void initGameStates() {
+        menu = new Menu(this);
+        playing = new Playing(this);
+        deathScreen = new DeathScreen(this);
+
+        // Initialize MediaPlayer for background music with proper error handling
+        try {
+            backgroundMusic = MediaPlayer.create(context, R.raw.background);
+            if (backgroundMusic != null) {
+                backgroundMusic.setLooping(true);
+            }
+        } catch (Exception e) {
+            System.err.println("Error initializing MediaPlayer: " + e.getMessage());
+            backgroundMusic = null;
+        }
+
+        // Load button images
+        musicIcon = BitmapFactory.decodeResource(context.getResources(), R.drawable.music);
+        soundIcon = BitmapFactory.decodeResource(context.getResources(), R.drawable.sound);
+
+        // Initialize buttons with much smaller size - 64x64 pixels
+        float buttonSize = 64;
+        float padding = 20;
+        float screenWidth = MainActivity.GAME_WIDTH;
+
+        toggleMusicButton = new CustomButton(screenWidth - buttonSize - padding, padding, buttonSize, buttonSize);
+        toggleSwordSoundButton = new CustomButton(screenWidth - buttonSize - padding, padding + buttonSize + 15, buttonSize, buttonSize);
+    }
 
     public void update(double delta) {
         switch (currentGameState) {
             case MENU -> menu.update(delta);
-            case PLAYING -> playing.update(delta);
+            case PLAYING -> {
+                playing.update(delta);
+                // Start background music when entering gameplay, with null check
+                if (isMusicOn && backgroundMusic != null && !backgroundMusic.isPlaying()) {
+                    try {
+                        backgroundMusic.start();
+                    } catch (Exception e) {
+                        System.err.println("Error starting background music: " + e.getMessage());
+                    }
+                }
+            }
             case DEATH_SCREEN -> deathScreen.update(delta);
         }
     }
@@ -40,23 +91,50 @@ public class Game {
         Canvas c = holder.lockCanvas();
         c.drawColor(Color.BLACK);
 
-        //Draw the game
+        // Draw the game
         switch (currentGameState) {
             case MENU -> menu.render(c);
-            case PLAYING -> playing.render(c);
+            case PLAYING -> {
+                playing.render(c);
+
+                // Draw buttons with smaller images only in gameplay
+                if (musicIcon != null) {
+                    Bitmap scaledMusicIcon = Bitmap.createScaledBitmap(musicIcon, 64, 64, false);
+                    c.drawBitmap(scaledMusicIcon, toggleMusicButton.getHitbox().left, toggleMusicButton.getHitbox().top, null);
+                }
+                if (soundIcon != null) {
+                    Bitmap scaledSoundIcon = Bitmap.createScaledBitmap(soundIcon, 64, 64, false);
+                    c.drawBitmap(scaledSoundIcon, toggleSwordSoundButton.getHitbox().left, toggleSwordSoundButton.getHitbox().top, null);
+                }
+            }
             case DEATH_SCREEN -> deathScreen.render(c);
         }
 
         holder.unlockCanvasAndPost(c);
     }
 
-    private void initGameStates() {
-        menu = new Menu(this);
-        playing = new Playing(this);
-        deathScreen = new DeathScreen(this);
-    }
-
     public boolean touchEvent(MotionEvent event) {
+        if (currentGameState == GameState.PLAYING && event.getAction() == MotionEvent.ACTION_DOWN) {
+            if (toggleMusicButton.getHitbox().contains(event.getX(), event.getY())) {
+                isMusicOn = !isMusicOn;
+                if (backgroundMusic != null) {
+                    try {
+                        if (isMusicOn) {
+                            backgroundMusic.start();
+                        } else {
+                            backgroundMusic.pause();
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error toggling background music: " + e.getMessage());
+                    }
+                }
+            } else if (toggleSwordSoundButton.getHitbox().contains(event.getX(), event.getY())) {
+                isSwordSoundOn = !isSwordSoundOn;
+                // Pass the sound setting to Playing class
+                playing.setSwordSoundEnabled(isSwordSoundOn);
+            }
+        }
+
         switch (currentGameState) {
             case MENU -> menu.touchEvents(event);
             case PLAYING -> playing.touchEvents(event);
@@ -96,5 +174,16 @@ public class Game {
 
     public Context getContext() {
         return context;
+    }
+
+    // Clean up MediaPlayer when game is destroyed
+    public void cleanup() {
+        if (backgroundMusic != null) {
+            try {
+                backgroundMusic.release();
+            } catch (Exception e) {
+                System.err.println("Error releasing MediaPlayer: " + e.getMessage());
+            }
+        }
     }
 }
