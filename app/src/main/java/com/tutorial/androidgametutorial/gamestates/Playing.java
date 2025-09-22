@@ -50,6 +50,8 @@ public class Playing extends BaseState implements GameStateInterface {
     // thêm
     private SoundPool soundPool;
     private int swordHitSoundId;
+    private int playerHitWallSoundId;
+
 
     private ArrayList<Projectile> projectiles = new ArrayList<>();
     private final Paint projectilePaint = new Paint();
@@ -86,6 +88,7 @@ public class Playing extends BaseState implements GameStateInterface {
         projectilePaint.setStyle(Paint.Style.FILL);
 
         swordHitSoundId = soundPool.load(game.getContext(), R.raw.sword_slice, 1);
+        playerHitWallSoundId = soundPool.load(game.getContext(), R.raw.wall_hit, 1);
 
         initHealthBars();
     }
@@ -334,38 +337,51 @@ private void checkPlayerAttack() {
         if (!movePlayer) return;
 
         float baseSpeed = (float) (delta * 300);
-        float ratio = Math.abs(lastTouchDiff.y) / Math.abs(lastTouchDiff.x);
-        double angle = Math.atan(ratio);
 
+        // Tính góc di chuyển dựa vào lastTouchDiff
+        double angle = Math.atan(Math.abs(lastTouchDiff.y) / Math.abs(lastTouchDiff.x));
         float xSpeed = (float) Math.cos(angle);
         float ySpeed = (float) Math.sin(angle);
 
+        // Xác định hướng mặt
         if (xSpeed > ySpeed) {
-            if (lastTouchDiff.x > 0) player.setFaceDir(GameConstants.Face_Dir.RIGHT);
-            else player.setFaceDir(GameConstants.Face_Dir.LEFT);
+            player.setFaceDir(lastTouchDiff.x > 0 ? GameConstants.Face_Dir.RIGHT : GameConstants.Face_Dir.LEFT);
         } else {
-            if (lastTouchDiff.y > 0) player.setFaceDir(GameConstants.Face_Dir.DOWN);
-            else player.setFaceDir(GameConstants.Face_Dir.UP);
+            player.setFaceDir(lastTouchDiff.y > 0 ? GameConstants.Face_Dir.DOWN : GameConstants.Face_Dir.UP);
         }
 
-        if (lastTouchDiff.x < 0) xSpeed *= -1;
-        if (lastTouchDiff.y < 0) ySpeed *= -1;
+        // Điều chỉnh dấu vận tốc
+        xSpeed = lastTouchDiff.x < 0 ? -xSpeed : xSpeed;
+        ySpeed = lastTouchDiff.y < 0 ? -ySpeed : ySpeed;
 
-        float deltaX = xSpeed * baseSpeed * -1;
-        float deltaY = ySpeed * baseSpeed * -1;
+        float deltaX = -xSpeed * baseSpeed;
+        float deltaY = -ySpeed * baseSpeed;
 
-        float deltaCameraX = cameraX * -1 + deltaX * -1;
-        float deltaCameraY = cameraY * -1 + deltaY * -1;
+        float deltaCameraX = -cameraX - deltaX;
+        float deltaCameraY = -cameraY - deltaY;
 
+        boolean hitWall = false;
+
+        // Kiểm tra va chạm tổng thể
         if (HelpMethods.CanWalkHere(player.getHitbox(), deltaCameraX, deltaCameraY, mapManager.getCurrentMap())) {
             cameraX += deltaX;
             cameraY += deltaY;
         } else {
-            if (HelpMethods.CanWalkHereUpDown(player.getHitbox(), deltaCameraY, cameraX * -1, mapManager.getCurrentMap()))
+            // Kiểm tra riêng từng chiều
+            if (HelpMethods.CanWalkHereUpDown(player.getHitbox(), deltaCameraY, -cameraX, mapManager.getCurrentMap())) {
                 cameraY += deltaY;
+            } else {
+                hitWall = true;
+            }
 
-            if (HelpMethods.CanWalkHereLeftRight(player.getHitbox(), deltaCameraX, cameraY * -1, mapManager.getCurrentMap()))
+            if (HelpMethods.CanWalkHereLeftRight(player.getHitbox(), deltaCameraX, -cameraY, mapManager.getCurrentMap())) {
                 cameraX += deltaX;
+            } else {
+                hitWall = true;
+            }
+
+            // Phát âm thanh nếu chạm viền
+            if (hitWall) playPlayerHitWall();
         }
     }
 
@@ -459,6 +475,10 @@ private void checkPlayerAttack() {
 
     public float getCameraY() {
         return cameraY;
+    }
+
+    private void playPlayerHitWall() {
+        soundPool.play(playerHitWallSoundId, 1, 1, 1, 0, 1f);
     }
 
 }

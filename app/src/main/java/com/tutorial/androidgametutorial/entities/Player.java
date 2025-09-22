@@ -71,7 +71,7 @@ public class Player extends Character {
                 new PointF(worldPx, worldPy),
                 new PointF(nearest.getHitbox().centerX(), nearest.getHitbox().centerY()),
                 skillDamage,
-                20f // tốc độ bay (px / s nếu delta tính theo giây)
+                200f // tốc độ bay (px / s nếu delta tính theo giây)
         );
 
         playing.addProjectile(sword);
