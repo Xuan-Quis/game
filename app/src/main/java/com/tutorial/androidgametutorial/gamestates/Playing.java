@@ -1,7 +1,7 @@
 package com.tutorial.androidgametutorial.gamestates;
 
+import com.tutorial.androidgametutorial.R;
 import static com.tutorial.androidgametutorial.helpers.GameConstants.Sprite.X_DRAW_OFFSET;
-import static com.tutorial.androidgametutorial.helpers.GameConstants.Sprite.Y_DRAW_OFFSET;
 import static com.tutorial.androidgametutorial.main.MainActivity.GAME_HEIGHT;
 import static com.tutorial.androidgametutorial.main.MainActivity.GAME_WIDTH;
 
@@ -10,6 +10,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
 import android.view.MotionEvent;
 
 import com.tutorial.androidgametutorial.entities.Building;
@@ -17,6 +19,7 @@ import com.tutorial.androidgametutorial.entities.Character;
 import com.tutorial.androidgametutorial.entities.Entity;
 import com.tutorial.androidgametutorial.entities.GameObject;
 import com.tutorial.androidgametutorial.entities.Player;
+import com.tutorial.androidgametutorial.entities.Projectile;
 import com.tutorial.androidgametutorial.entities.Weapons;
 import com.tutorial.androidgametutorial.entities.enemies.Skeleton;
 import com.tutorial.androidgametutorial.entities.items.Item;
@@ -28,6 +31,7 @@ import com.tutorial.androidgametutorial.helpers.interfaces.GameStateInterface;
 import com.tutorial.androidgametutorial.main.Game;
 import com.tutorial.androidgametutorial.ui.PlayingUI;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Playing extends BaseState implements GameStateInterface {
@@ -44,12 +48,12 @@ public class Playing extends BaseState implements GameStateInterface {
     private boolean listOfEntitiesMade;
 
     // thêm
-    private RectF playerAttackBoxWorld = null;
-    private float playerAttackRotationDeg = 0f;
-    private boolean playerAttackActive = false;
-    private long playerAttackStartTime = 0L;
-    private static final long PLAYER_ATTACK_DURATION_MS = 400;      // tổng thời gian animation (ms)
-    private static final long PLAYER_ATTACK_HIT_WINDOW_MS = 180;    // thời điểm gây sát thương (ms)
+    private SoundPool soundPool;
+    private int swordHitSoundId;
+
+    private ArrayList<Projectile> projectiles = new ArrayList<>();
+    private final Paint projectilePaint = new Paint();
+   // thời điểm gây sát thương (ms)
 
     public Playing(Game game) {
         super(game);
@@ -68,6 +72,21 @@ public class Playing extends BaseState implements GameStateInterface {
 
         healthBarRed = new Paint();
         healthBarBlack = new Paint();
+
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+
+        soundPool = new SoundPool.Builder()
+                .setMaxStreams(5)
+                .setAudioAttributes(audioAttributes)
+                .build();
+        projectilePaint.setColor(Color.CYAN);
+        projectilePaint.setStyle(Paint.Style.FILL);
+
+        swordHitSoundId = soundPool.load(game.getContext(), R.raw.sword_slice, 1);
+
         initHealthBars();
     }
 
@@ -124,6 +143,7 @@ public class Playing extends BaseState implements GameStateInterface {
 
 
         sortArray();
+        updateProjectiles(delta);
 
     }
 
@@ -184,26 +204,39 @@ public class Playing extends BaseState implements GameStateInterface {
 
     }
 
-    private void checkPlayerAttack() {
+private void checkPlayerAttack() {
 
-        RectF attackBoxWithoutCamera = new RectF(player.getAttackBox());
-        attackBoxWithoutCamera.left -= cameraX;
-        attackBoxWithoutCamera.top -= cameraY;
-        attackBoxWithoutCamera.right -= cameraX;
-        attackBoxWithoutCamera.bottom -= cameraY;
+    RectF attackBoxWithoutCamera = new RectF(player.getAttackBox());
+    attackBoxWithoutCamera.left -= cameraX;
+    attackBoxWithoutCamera.top -= cameraY;
+    attackBoxWithoutCamera.right -= cameraX;
+    attackBoxWithoutCamera.bottom -= cameraY;
 
-        if (mapManager.getCurrentMap().getSkeletonArrayList() != null)
-            for (Skeleton s : mapManager.getCurrentMap().getSkeletonArrayList())
-                if (attackBoxWithoutCamera.intersects(s.getHitbox().left, s.getHitbox().top, s.getHitbox().right, s.getHitbox().bottom)) {
-                    s.damageCharacter(player.getDamage());
+    if (mapManager.getCurrentMap().getSkeletonArrayList() != null) {
+        for (Skeleton s : mapManager.getCurrentMap().getSkeletonArrayList()) {
+            if (attackBoxWithoutCamera.intersects(
+                    s.getHitbox().left,
+                    s.getHitbox().top,
+                    s.getHitbox().right,
+                    s.getHitbox().bottom)) {
 
-                    if (s.getCurrentHealth() <= 0)
-                        s.setSkeletonInactive();
-//                    s.setActive(false);
+                // Trừ máu quái
+                s.damageCharacter(player.getDamage());
+
+                // 🔊 Phát âm thanh nhát chém khi trúng
+                playSwordHit();
+
+                // Nếu quái chết thì set inactive
+                if (s.getCurrentHealth() <= 0) {
+                    s.setSkeletonInactive();
                 }
-//
-        player.setAttackChecked(true);
+            }
+        }
     }
+
+    player.setAttackChecked(true);
+}
+
 
 
     @Override
@@ -213,8 +246,20 @@ public class Playing extends BaseState implements GameStateInterface {
             drawSortedEntities(c);
 
         playingUI.draw(c);
-    }
 
+        // 🔥 Bổ sung: vẽ projectile
+        drawProjectiles(c);
+    }
+    private void drawProjectiles(Canvas c) {
+        for (Projectile p : projectiles) {
+            if (p.isActive()) {
+                p.render(c, projectilePaint, cameraX, cameraY);
+            }
+        }
+    }
+    public void castThrowSwordSkill() {
+        player.castThrowSword(this);
+    }
     private void drawSortedEntities(Canvas c) {
         for (Entity e : listOfDrawables) {
             if (e instanceof Skeleton skeleton) {
@@ -349,6 +394,71 @@ public class Playing extends BaseState implements GameStateInterface {
 
     public PlayingUI getPlayingUI() {
         return playingUI;
+    }
+
+    private void playSwordHit() {
+        soundPool.play(swordHitSoundId, 1, 1, 1, 0, 1f);
+    }
+    public void dispose() {
+        if (soundPool != null) {
+            soundPool.release();
+            soundPool = null;
+        }
+    }
+    public void addProjectile(Projectile p) {
+        projectiles.add(p);
+    }
+
+    public Skeleton findNearestSkeleton(float px, float py, float range) {
+        Skeleton nearest = null;
+        float minDistSq = range * range;
+
+        if (mapManager.getCurrentMap().getSkeletonArrayList() != null) {
+            for (Skeleton s : mapManager.getCurrentMap().getSkeletonArrayList()) {
+                if (!s.isActive()) continue;
+                float dx = s.getHitbox().centerX() - px;
+                float dy = s.getHitbox().centerY() - py;
+                float distSq = dx * dx + dy * dy;
+
+                if (distSq < minDistSq) {
+                    minDistSq = distSq;
+                    nearest = s;
+                }
+            }
+        }
+        return nearest;
+    }
+
+    private void updateProjectiles(double delta) {
+        for (Projectile p : projectiles) {
+            if (!p.isActive()) continue;
+            p.update(delta);
+
+            // check va chạm với skeleton
+            if (mapManager.getCurrentMap().getSkeletonArrayList() != null) {
+                for (Skeleton s : mapManager.getCurrentMap().getSkeletonArrayList()) {
+                    if (!s.isActive()) continue;
+                    if (RectF.intersects(p.getHitbox(), s.getHitbox())) {
+                        s.damageCharacter(p.getDamage());
+                        if (s.getCurrentHealth() <= 0) s.setSkeletonInactive();
+                        p.deactivate();
+                        break;
+                    }
+                }
+            }
+
+            // check projectile bay ra khỏi map
+            if (p.isOutOfBounds(mapManager.getMaxWidthCurrentMap(), mapManager.getMaxHeightCurrentMap())) {
+                p.deactivate();
+            }
+        }
+    }
+    public float getCameraX() {
+        return cameraX;
+    }
+
+    public float getCameraY() {
+        return cameraY;
     }
 
 }

@@ -6,33 +6,39 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.view.MotionEvent;
 
-import com.tutorial.androidgametutorial.entities.Character;
 import com.tutorial.androidgametutorial.entities.Player;
 import com.tutorial.androidgametutorial.gamestates.Playing;
 import com.tutorial.androidgametutorial.main.Game;
 
 public class PlayingUI {
 
-    //For UI
+    // Joystick
     private final PointF joystickCenterPos = new PointF(250, 800);
-    private final PointF attackBtnCenterPos = new PointF(1700, 800);
-    private final int radius = 120; // existing joystick radius
-    private final int attackBtnRadius = 80; // smaller attack button radius
-    private final Paint circlePaint;
-
-    //For Multitouch
+    private final int joystickRadius = 120;
     private int joystickPointerId = -1;
-    private int attackBtnPointerId = -1;
     private boolean touchDown;
 
-    private CustomButton btnMenu;
+    // Attack button
+    private final PointF attackBtnCenterPos = new PointF(1700, 800);
+    private final int attackBtnRadius = 80;
+    private int attackBtnPointerId = -1;
 
-    private final Playing playing;
+    // Skill button (ném kiếm)
+    private final PointF skillBtnCenterPos = new PointF(attackBtnCenterPos.x - 200, attackBtnCenterPos.y);
+    private final int skillBtnRadius = attackBtnRadius;
+    private int skillBtnPointerId = -1;
+
+    // Paint để vẽ
+    private final Paint circlePaint;
+
+    // Menu
+    private final CustomButton btnMenu;
 
     // Health
     private final int healthIconX = 150, healthIconY = 25;
-//    private int maxPlayerHealth = 600;
-//    private int currentPlayerHealth = 275;
+
+    private final Playing playing;
+
 
     public PlayingUI(Playing playing) {
         this.playing = playing;
@@ -42,8 +48,9 @@ public class PlayingUI {
         circlePaint.setStrokeWidth(5);
         circlePaint.setStyle(Paint.Style.STROKE);
 
-        btnMenu = new CustomButton(5, 5, ButtonImages.PLAYING_MENU.getWidth(), ButtonImages.PLAYING_MENU.getHeight());
-
+        btnMenu = new CustomButton(5, 5,
+                ButtonImages.PLAYING_MENU.getWidth(),
+                ButtonImages.PLAYING_MENU.getHeight());
     }
 
     public void draw(Canvas c) {
@@ -51,17 +58,24 @@ public class PlayingUI {
     }
 
     private void drawUI(Canvas c) {
-        c.drawCircle(joystickCenterPos.x, joystickCenterPos.y, radius, circlePaint);
+        // Joystick
+        c.drawCircle(joystickCenterPos.x, joystickCenterPos.y, joystickRadius, circlePaint);
+
+        // Attack
         c.drawCircle(attackBtnCenterPos.x, attackBtnCenterPos.y, attackBtnRadius, circlePaint);
 
+        // Skill
+        c.drawCircle(skillBtnCenterPos.x, skillBtnCenterPos.y, skillBtnRadius, circlePaint);
+
+        // Menu
         c.drawBitmap(
                 ButtonImages.PLAYING_MENU.getBtnImg(btnMenu.isPushed(btnMenu.getPointerId())),
                 btnMenu.getHitbox().left,
                 btnMenu.getHitbox().top,
                 null);
 
+        // Health
         drawHealth(c);
-
     }
 
     private void drawHealth(Canvas c) {
@@ -79,37 +93,13 @@ public class PlayingUI {
                     c.drawBitmap(HealthIcons.HEART_HALF.getIcon(), x, healthIconY, null);
                 else
                     c.drawBitmap(HealthIcons.HEART_3Q.getIcon(), x, healthIconY, null);
-            } else
+            } else {
                 c.drawBitmap(HealthIcons.HEART_FULL.getIcon(), x, healthIconY, null);
+            }
         }
-
-
     }
 
-
-
-    private boolean isInsideRadius(PointF eventPos, PointF circle) {
-        float a = Math.abs(eventPos.x - circle.x);
-        float b = Math.abs(eventPos.y - circle.y);
-        float c = (float) Math.hypot(a, b);
-
-        return c <= radius;
-    }
-
-    private boolean checkInsideAttackBtn(PointF eventPos) {
-        return isInsideRadius(eventPos, attackBtnCenterPos);
-    }
-
-    private boolean checkInsideJoyStick(PointF eventPos, int pointerId) {
-        if (isInsideRadius(eventPos, joystickCenterPos)) {
-            touchDown = true;
-            joystickPointerId = pointerId;
-            return true;
-        }
-        return false;
-    }
-
-
+    // ========= INPUT =========
     public void touchEvents(MotionEvent event) {
         final int action = event.getActionMasked();
         final int actionIndex = event.getActionIndex();
@@ -119,12 +109,17 @@ public class PlayingUI {
 
         switch (action) {
             case MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
-                if (checkInsideJoyStick(eventPos, pointerId))
+                if (checkInsideJoystick(eventPos, pointerId)) {
                     touchDown = true;
-                else if (checkInsideAttackBtn(eventPos)) {
+                } else if (checkInsideAttackBtn(eventPos)) {
                     if (attackBtnPointerId < 0) {
                         playing.getPlayer().setAttacking(true);
                         attackBtnPointerId = pointerId;
+                    }
+                } else if (checkInsideSkillBtn(eventPos)) {
+                    if (skillBtnPointerId < 0) {
+                        playing.castThrowSwordSkill(); // gọi hàm skill trong Playing
+                        skillBtnPointerId = pointerId;
                     }
                 } else {
                     if (isIn(eventPos, btnMenu))
@@ -133,7 +128,7 @@ public class PlayingUI {
             }
 
             case MotionEvent.ACTION_MOVE -> {
-                if (touchDown)
+                if (touchDown) {
                     for (int i = 0; i < event.getPointerCount(); i++) {
                         if (event.getPointerId(i) == joystickPointerId) {
                             float xDiff = event.getX(i) - joystickCenterPos.x;
@@ -141,37 +136,62 @@ public class PlayingUI {
                             playing.setPlayerMoveTrue(new PointF(xDiff, yDiff));
                         }
                     }
+                }
             }
+
             case MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
                 if (pointerId == joystickPointerId) {
-                    resetJoystickButton();
+                    resetJoystick();
                 } else {
-                    if (isIn(eventPos, btnMenu))
-                        if (btnMenu.isPushed(pointerId)) {
-                            resetJoystickButton();
-                            playing.setGameStateToMenu();
-                        }
+                    if (isIn(eventPos, btnMenu) && btnMenu.isPushed(pointerId)) {
+                        resetJoystick();
+                        playing.setGameStateToMenu();
+                    }
                     btnMenu.unPush(pointerId);
+
                     if (pointerId == attackBtnPointerId) {
                         playing.getPlayer().setAttacking(false);
                         attackBtnPointerId = -1;
+                    }
+                    if (pointerId == skillBtnPointerId) {
+                        skillBtnPointerId = -1;
                     }
                 }
             }
         }
     }
 
-    private void resetJoystickButton() {
+    // ========= SUPPORT =========
+    private boolean checkInsideJoystick(PointF eventPos, int pointerId) {
+        if (isInsideRadius(eventPos, joystickCenterPos, joystickRadius)) {
+            joystickPointerId = pointerId;
+            return true;
+        }
+        return false;
+    }
+
+    private boolean checkInsideAttackBtn(PointF eventPos) {
+        return isInsideRadius(eventPos, attackBtnCenterPos, attackBtnRadius);
+    }
+
+    private boolean checkInsideSkillBtn(PointF eventPos) {
+        return isInsideRadius(eventPos, skillBtnCenterPos, skillBtnRadius);
+    }
+
+    private boolean isInsideRadius(PointF eventPos, PointF center, int r) {
+        float a = Math.abs(eventPos.x - center.x);
+        float b = Math.abs(eventPos.y - center.y);
+        float dist = (float) Math.hypot(a, b);
+        return dist <= r;
+    }
+
+    private void resetJoystick() {
         touchDown = false;
-        playing.setPlayerMoveFalse();
         joystickPointerId = -1;
+        playing.setPlayerMoveFalse();
     }
 
     private boolean isIn(PointF eventPos, CustomButton b) {
         return b.getHitbox().contains(eventPos.x, eventPos.y);
     }
-
-//    public void resetPlayerHealth() {
-//        this.currentPlayerHealth = maxPlayerHealth;
-//    }
 }

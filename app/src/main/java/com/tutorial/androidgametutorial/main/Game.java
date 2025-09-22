@@ -1,5 +1,6 @@
 package com.tutorial.androidgametutorial.main;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.view.MotionEvent;
@@ -18,11 +19,14 @@ public class Game {
     private GameLoop gameLoop;
     private GameState currentGameState = GameState.MENU;
 
-    public Game(SurfaceHolder holder) {
+    private Context context;
+    public Game(SurfaceHolder holder, Context context) {
         this.holder = holder;
+        this.context = context;
         gameLoop = new GameLoop(this);
         initGameStates();
     }
+
 
     public void update(double delta) {
         switch (currentGameState) {
@@ -88,5 +92,9 @@ public class Game {
 
     public DeathScreen getDeathScreen() {
         return deathScreen;
+    }
+
+    public Context getContext() {
+        return context;
     }
 }
