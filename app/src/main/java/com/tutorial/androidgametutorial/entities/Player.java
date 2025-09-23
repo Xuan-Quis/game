@@ -4,9 +4,13 @@ import static com.tutorial.androidgametutorial.main.MainActivity.GAME_HEIGHT;
 import static com.tutorial.androidgametutorial.main.MainActivity.GAME_WIDTH;
 
 import android.graphics.PointF;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
 
+import com.tutorial.androidgametutorial.R;
 import com.tutorial.androidgametutorial.entities.enemies.Skeleton;
 import com.tutorial.androidgametutorial.gamestates.Playing;
+import com.tutorial.androidgametutorial.main.MainActivity;
 
 public class Player extends Character {
 
@@ -14,9 +18,26 @@ public class Player extends Character {
     private long attackCooldown = 500; // milliseconds
 
     private long lastSkillTime = 0;
-    private long skillCooldown = 3000; // 3 giây hồi chiêu
+    private final long skillCooldown = 1000; // 1 giây hồi chiêu
     private int skillRange = 500;
     private int skillDamage = 100;
+
+    private static SoundPool soundPool;
+    private static int skillSoundId;
+
+    static {
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+
+        soundPool = new SoundPool.Builder()
+                .setMaxStreams(5)
+                .setAudioAttributes(audioAttributes)
+                .build();
+
+        skillSoundId = soundPool.load(MainActivity.getGameContext(), R.raw.fast_whoosh, 1);
+    }
 
     public Player() {
         super(new PointF(GAME_WIDTH / 2, GAME_HEIGHT / 2), GameCharacters.PLAYER);
@@ -54,6 +75,8 @@ public class Player extends Character {
         if (!canCastThrow()) return;
         setLastSkillTime();
 
+        soundPool.play(skillSoundId, 1, 1, 1, 0, 1f);
+
         // chuyển từ screen coords -> world coords (player hitbox hiện là screen coords)
         float worldPx = getHitbox().centerX() - playing.getCameraX();
         float worldPy = getHitbox().centerY() - playing.getCameraY();
@@ -71,7 +94,7 @@ public class Player extends Character {
                 new PointF(worldPx, worldPy),
                 new PointF(nearest.getHitbox().centerX(), nearest.getHitbox().centerY()),
                 skillDamage,
-                200f // tốc độ bay (px / s nếu delta tính theo giây)
+                300f // tốc độ bay (px / s nếu delta tính theo giây)
         );
 
         playing.addProjectile(sword);

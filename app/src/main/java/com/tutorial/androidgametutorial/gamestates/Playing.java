@@ -30,9 +30,11 @@ import com.tutorial.androidgametutorial.helpers.HelpMethods;
 import com.tutorial.androidgametutorial.helpers.interfaces.GameStateInterface;
 import com.tutorial.androidgametutorial.main.Game;
 import com.tutorial.androidgametutorial.ui.PlayingUI;
+import com.tutorial.androidgametutorial.effects.ExplosionEffect;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 
 public class Playing extends BaseState implements GameStateInterface {
     private float cameraX, cameraY;
@@ -57,6 +59,7 @@ public class Playing extends BaseState implements GameStateInterface {
     private ArrayList<Projectile> projectiles = new ArrayList<>();
     private final Paint projectilePaint = new Paint();
    // thời điểm gây sát thương (ms)
+    private ArrayList<ExplosionEffect> explosionEffects = new ArrayList<>();
 
     public Playing(Game game) {
         super(game);
@@ -260,6 +263,10 @@ private void checkPlayerAttack() {
                 p.render(c, projectilePaint, cameraX, cameraY);
             }
         }
+        // Vẽ hiệu ứng nổ
+        for (ExplosionEffect effect : explosionEffects) {
+            effect.render(c, cameraX, cameraY);
+        }
     }
     public void castThrowSwordSkill() {
         player.castThrowSword(this);
@@ -453,17 +460,21 @@ private void checkPlayerAttack() {
         return nearest;
     }
 
+
+    // Cập nhật và kiểm tra va chạm cho các projectile, trừ máu, hiệu ứng ....
     private void updateProjectiles(double delta) {
         for (Projectile p : projectiles) {
             if (!p.isActive()) continue;
             p.update(delta);
-
             // check va chạm với skeleton
             if (mapManager.getCurrentMap().getSkeletonArrayList() != null) {
                 for (Skeleton s : mapManager.getCurrentMap().getSkeletonArrayList()) {
                     if (!s.isActive()) continue;
                     if (RectF.intersects(p.getHitbox(), s.getHitbox())) {
-                        s.damageCharacter(p.getDamage());
+                        int halfMaxHp = s.getMaxHealth() / 2;
+                        s.damageCharacter(halfMaxHp);
+                        // Thêm hiệu ứng nổ tại vị trí quái bị trúng
+                        explosionEffects.add(new ExplosionEffect(new PointF(s.getHitbox().centerX(), s.getHitbox().centerY())));
                         if (s.getCurrentHealth() <= 0) s.setSkeletonInactive();
                         p.deactivate();
                         break;
@@ -475,6 +486,13 @@ private void checkPlayerAttack() {
             if (p.isOutOfBounds(mapManager.getMaxWidthCurrentMap(), mapManager.getMaxHeightCurrentMap())) {
                 p.deactivate();
             }
+        }
+        // Cập nhật hiệu ứng nổ
+        Iterator<ExplosionEffect> it = explosionEffects.iterator();
+        while (it.hasNext()) {
+            ExplosionEffect effect = it.next();
+            effect.update();
+            if (!effect.isActive()) it.remove();
         }
     }
     public float getCameraX() {
