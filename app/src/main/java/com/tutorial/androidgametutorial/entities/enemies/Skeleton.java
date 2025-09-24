@@ -19,6 +19,13 @@ public class Skeleton extends Character {
     private long lastDirChange = System.currentTimeMillis();
     private Random rand = new Random();
     private boolean moving = true, preparingAttack;
+    private boolean chasing = false;
+    private Player targetPlayer;
+    private float cameraX, cameraY;
+    private float normalSpeed = 300f;
+    private float chaseSpeed = 450f;
+    private float chaseRange = 400f;
+
     private long timerBeforeAttack, timerAttackDuration;
     private long timeToAttack = 500, timeForAttackDuration = 250;
 
@@ -79,13 +86,97 @@ public class Skeleton extends Character {
         }
     }
 
+    public void update(double delta, GameMap gameMap, Player player, float cameraX, float cameraY) {
+        this.targetPlayer = player;
+        this.cameraX = cameraX;
+        this.cameraY = cameraY;
+
+        float distanceToPlayer = getDistanceToPlayer(player, cameraX, cameraY);
+
+        if (distanceToPlayer <= chaseRange && !preparingAttack && !attacking) {
+            chasing = true;
+        } else if (distanceToPlayer > chaseRange * 1.5f) {
+            chasing = false;
+        }
+
+        if (moving) {
+            updateMove(delta, gameMap);
+            updateAnimation();
+        }
+        if (preparingAttack) {
+            checkTimeToAttackTimer();
+        }
+        if (attacking) {
+            updateAttackTimer();
+        }
+    }
+
+    private float getDistanceToPlayer(Player player, float cameraX, float cameraY) {
+        float playerX = player.getHitbox().left - cameraX;
+        float playerY = player.getHitbox().top - cameraY;
+        float skeletonX = hitbox.left;
+        float skeletonY = hitbox.top;
+
+        float deltaX = playerX - skeletonX;
+        float deltaY = playerY - skeletonY;
+
+        return (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    }
+
     private void updateMove(double delta, GameMap gameMap) {
+        float currentSpeed = chasing ? chaseSpeed : normalSpeed;
+        float deltaChange = (float) (delta * currentSpeed);
+
+        if (chasing && targetPlayer != null) {
+            moveTowardsPlayer(deltaChange, gameMap);
+        } else {
+            moveRandomly(delta, gameMap, deltaChange);
+        }
+    }
+
+    private void moveTowardsPlayer(float deltaChange, GameMap gameMap) {
+        float playerX = targetPlayer.getHitbox().left - cameraX;
+        float playerY = targetPlayer.getHitbox().top - cameraY;
+        float skeletonX = hitbox.left;
+        float skeletonY = hitbox.top;
+
+        float deltaX = playerX - skeletonX;
+        float deltaY = playerY - skeletonY;
+
+        float distance = (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        if (distance > 0) {
+            deltaX = (deltaX / distance) * deltaChange;
+            deltaY = (deltaY / distance) * deltaChange;
+        }
+
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            if (HelpMethods.CanWalkHere(hitbox, deltaX, 0, gameMap)) {
+                hitbox.left += deltaX;
+                hitbox.right += deltaX;
+                faceDir = deltaX > 0 ? GameConstants.Face_Dir.RIGHT : GameConstants.Face_Dir.LEFT;
+            } else if (HelpMethods.CanWalkHere(hitbox, 0, deltaY, gameMap)) {
+                hitbox.top += deltaY;
+                hitbox.bottom += deltaY;
+                faceDir = deltaY > 0 ? GameConstants.Face_Dir.DOWN : GameConstants.Face_Dir.UP;
+            }
+        } else {
+            if (HelpMethods.CanWalkHere(hitbox, 0, deltaY, gameMap)) {
+                hitbox.top += deltaY;
+                hitbox.bottom += deltaY;
+                faceDir = deltaY > 0 ? GameConstants.Face_Dir.DOWN : GameConstants.Face_Dir.UP;
+            } else if (HelpMethods.CanWalkHere(hitbox, deltaX, 0, gameMap)) {
+                hitbox.left += deltaX;
+                hitbox.right += deltaX;
+                faceDir = deltaX > 0 ? GameConstants.Face_Dir.RIGHT : GameConstants.Face_Dir.LEFT;
+            }
+        }
+    }
+
+    private void moveRandomly(double delta, GameMap gameMap, float deltaChange) {
         if (System.currentTimeMillis() - lastDirChange >= 3000) {
             faceDir = rand.nextInt(4);
             lastDirChange = System.currentTimeMillis();
         }
-
-        float deltaChange = (float) (delta * 300);
 
         switch (faceDir) {
             case GameConstants.Face_Dir.DOWN:
@@ -128,5 +219,13 @@ public class Skeleton extends Character {
 
     public void setSkeletonInactive() {
         active = false;
+    }
+
+    public boolean isChasing() {
+        return chasing;
+    }
+
+    public void setChasing(boolean chasing) {
+        this.chasing = chasing;
     }
 }

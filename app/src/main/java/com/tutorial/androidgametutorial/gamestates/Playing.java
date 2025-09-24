@@ -136,7 +136,8 @@ public class Playing extends BaseState implements GameStateInterface {
         if (mapManager.getCurrentMap().getSkeletonArrayList() != null)
             for (Skeleton skeleton : mapManager.getCurrentMap().getSkeletonArrayList())
                 if (skeleton.isActive()) {
-                    skeleton.update(delta, mapManager.getCurrentMap());
+                    // Sử dụng phương thức update mới với tham số Player và camera để Skeleton có thể đuổi theo
+                    skeleton.update(delta, mapManager.getCurrentMap(), player, cameraX, cameraY);
                     if (skeleton.isAttacking()) {
                         if (!skeleton.isAttackChecked()) {
                             checkEnemyAttack(skeleton);
