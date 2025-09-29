@@ -21,6 +21,7 @@ import com.tutorial.androidgametutorial.entities.GameObject;
 import com.tutorial.androidgametutorial.entities.Player;
 import com.tutorial.androidgametutorial.entities.Projectile;
 import com.tutorial.androidgametutorial.entities.Weapons;
+import com.tutorial.androidgametutorial.entities.enemies.Monster;
 import com.tutorial.androidgametutorial.entities.enemies.Skeleton;
 import com.tutorial.androidgametutorial.entities.items.Item;
 import com.tutorial.androidgametutorial.environments.Doorway;
@@ -148,6 +149,21 @@ public class Playing extends BaseState implements GameStateInterface {
                         }
                     }
                 }
+        if (mapManager.getCurrentMap().getMonsterArrayList() != null)
+            for (Monster monster : mapManager.getCurrentMap().getMonsterArrayList())
+                if (monster.isActive()) {
+                    monster.update(delta, mapManager.getCurrentMap(), player, cameraX, cameraY);
+                    if (monster.isAttacking()) {
+                        if (!monster.isAttackChecked()) {
+                            checkEnemyAttack(monster);
+                        }
+                    } else if (!monster.isPreparingAttack()) {
+                        if (HelpMethods.IsPlayerCloseForAttack(monster, player, cameraY, cameraX)) {
+                            monster.prepareAttack(player, cameraX, cameraY);
+                        }
+                    }
+                }
+
 
 
         sortArray();
@@ -240,6 +256,24 @@ private void checkPlayerAttack() {
                 }
             }
         }
+        if (mapManager.getCurrentMap().getMonsterArrayList() != null) {
+            for (Monster m : mapManager.getCurrentMap().getMonsterArrayList()) {
+                if (attackBoxWithoutCamera.intersects(
+                        m.getHitbox().left,
+                        m.getHitbox().top,
+                        m.getHitbox().right,
+                        m.getHitbox().bottom)) {
+
+                    m.damageCharacter(player.getDamage());
+                    playSwordHit();
+
+                    if (m.getCurrentHealth() <= 0) {
+                        m.setMonsterInactive();
+                    }
+                }
+            }
+        }
+
     }
 
     player.setAttackChecked(true);
@@ -275,7 +309,8 @@ private void checkPlayerAttack() {
     private void drawSortedEntities(Canvas c) {
         for (Entity e : listOfDrawables) {
             if (e instanceof Skeleton skeleton) {
-                if (skeleton.isActive()) drawCharacter(c, skeleton);
+                if (skeleton.isActive())
+                    drawCharacter(c, skeleton);
             } else if (e instanceof GameObject gameObject) {
                 mapManager.drawObject(c, gameObject);
             } else if (e instanceof Building building) {
@@ -285,6 +320,11 @@ private void checkPlayerAttack() {
             } else if (e instanceof Player) {
                 drawPlayer(c);
             }
+            else if (e instanceof Monster monster) {
+                if (monster.isActive())
+                    drawCharacter(c, monster);
+            }
+
         }
     }
 

@@ -46,6 +46,7 @@ public abstract class Character extends Entity {
             case PLAYER -> 10;
 //            case PLAYER -> 50;
             case SKELETON -> 25;
+            case MONSTER -> 50;
         };
     }
 

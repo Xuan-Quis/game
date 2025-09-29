@@ -1,18 +1,21 @@
 package com.tutorial.androidgametutorial.helpers;
 
+import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
 
+import com.tutorial.androidgametutorial.R;
 import com.tutorial.androidgametutorial.entities.Building;
 import com.tutorial.androidgametutorial.entities.Character;
 import com.tutorial.androidgametutorial.entities.GameObject;
 import com.tutorial.androidgametutorial.entities.Player;
+import com.tutorial.androidgametutorial.entities.enemies.Monster;
 import com.tutorial.androidgametutorial.entities.enemies.Skeleton;
 import com.tutorial.androidgametutorial.environments.Doorway;
 import com.tutorial.androidgametutorial.environments.GameMap;
 import com.tutorial.androidgametutorial.environments.Tiles;
-
+import com.tutorial.androidgametutorial.main.MainActivity;
 
 import java.util.ArrayList;
 
@@ -68,6 +71,22 @@ public class HelpMethods {
 
         return skeletonArrayList;
 
+    }
+    public static ArrayList<Monster> GetMonstersRandomized(int amount, int[][] gameMapArray) {
+
+        int width = (gameMapArray[0].length - 1) * GameConstants.Sprite.SIZE;
+        int height = (gameMapArray.length - 1) * GameConstants.Sprite.SIZE;
+
+        ArrayList<Monster> monsterArrayList = new ArrayList<>();
+
+        for (int i = 0; i < amount; i++) {
+            float x = (float) (Math.random() * width);
+            float y = (float) (Math.random() * height);
+            // tạo Monster bằng constructor nhận PointF (giống GetSkeletonsRandomized)
+            monsterArrayList.add(new Monster(new PointF(x, y)));
+        }
+
+        return monsterArrayList;
     }
 
     public static float MoveNextToTileUpDown(RectF hitbox, float cameraY, float deltaY) {

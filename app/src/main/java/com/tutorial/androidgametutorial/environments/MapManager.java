@@ -8,6 +8,8 @@ import com.tutorial.androidgametutorial.entities.Building;
 import com.tutorial.androidgametutorial.entities.Buildings;
 import com.tutorial.androidgametutorial.entities.GameObject;
 import com.tutorial.androidgametutorial.entities.GameObjects;
+import com.tutorial.androidgametutorial.entities.enemies.Monster;
+import com.tutorial.androidgametutorial.entities.enemies.Skeleton;
 import com.tutorial.androidgametutorial.entities.items.Item;
 import com.tutorial.androidgametutorial.entities.items.Items;
 import com.tutorial.androidgametutorial.gamestates.Playing;
@@ -26,7 +28,6 @@ public class MapManager {
     public MapManager(Playing playing) {
         this.playing = playing;
         initTestMap();
-
     }
 
     public void setCameraValues(float cameraX, float cameraY) {
@@ -52,23 +53,34 @@ public class MapManager {
         return currentMap.getArrayHeight() * GameConstants.Sprite.SIZE;
     }
 
-
     public void drawObject(Canvas c, GameObject go) {
-        c.drawBitmap(go.getObjectType().getObjectImg(), go.getHitbox().left + cameraX, go.getHitbox().top - go.getObjectType().getHitboxRoof() + cameraY, null);
+        c.drawBitmap(go.getObjectType().getObjectImg(),
+                go.getHitbox().left + cameraX,
+                go.getHitbox().top - go.getObjectType().getHitboxRoof() + cameraY,
+                null);
     }
 
     public void drawBuilding(Canvas c, Building b) {
-        c.drawBitmap(b.getBuildingType().getHouseImg(), b.getPos().x + cameraX, b.getPos().y - b.getBuildingType().getHitboxRoof() + cameraY, null);
+        c.drawBitmap(b.getBuildingType().getHouseImg(),
+                b.getPos().x + cameraX,
+                b.getPos().y - b.getBuildingType().getHitboxRoof() + cameraY,
+                null);
     }
 
     public void drawTiles(Canvas c) {
         for (int j = 0; j < currentMap.getArrayHeight(); j++)
             for (int i = 0; i < currentMap.getArrayWidth(); i++)
-                c.drawBitmap(currentMap.getFloorType().getSprite(currentMap.getSpriteID(i, j)), i * GameConstants.Sprite.SIZE + cameraX, j * GameConstants.Sprite.SIZE + cameraY, null);
+                c.drawBitmap(currentMap.getFloorType().getSprite(currentMap.getSpriteID(i, j)),
+                        i * GameConstants.Sprite.SIZE + cameraX,
+                        j * GameConstants.Sprite.SIZE + cameraY,
+                        null);
     }
 
     public void drawItem(Canvas c, Item item) {
-        c.drawBitmap(item.getItemType().getImage(), item.getHitbox().left + cameraX, item.getHitbox().top + cameraY, null);
+        c.drawBitmap(item.getItemType().getImage(),
+                item.getHitbox().left + cameraX,
+                item.getHitbox().top + cameraY,
+                null);
     }
 
     public Doorway isPlayerOnDoorway(RectF playerHitbox) {
@@ -146,52 +158,90 @@ public class MapManager {
                 {406, 298, 298, 298, 298, 298, 410},
                 {472, 475, 473, 394, 474, 475, 476}
         };
-
+        // Khởi tạo buildings
         ArrayList<Building> buildingArrayList = new ArrayList<>();
         buildingArrayList.add(new Building(new PointF(1440, 160), Buildings.HOUSE_ONE));
         buildingArrayList.add(new Building(new PointF(1540, 880), Buildings.HOUSE_TWO));
         buildingArrayList.add(new Building(new PointF(575, 1000), Buildings.HOUSE_SIX));
 
+        // Khởi tạo game objects
         ArrayList<GameObject> gameObjectArrayList = new ArrayList<>();
         gameObjectArrayList.add(new GameObject(new PointF(190, 70), GameObjects.STATUE_ANGRY_YELLOW));
         gameObjectArrayList.add(new GameObject(new PointF(580, 70), GameObjects.STATUE_ANGRY_YELLOW));
         gameObjectArrayList.add(new GameObject(new PointF(1000, 550), GameObjects.BASKET_FULL_RED_FRUIT));
         gameObjectArrayList.add(new GameObject(new PointF(620, 520), GameObjects.OVEN_SNOW_YELLOW));
 
-
+        // Khởi tạo items ngoài trời
         ArrayList<Item> outsideItemArrayList = new ArrayList<>();
         outsideItemArrayList.add(new Item(Items.FISH, new PointF(560, 560)));
         outsideItemArrayList.add(new Item(Items.MEDIPACK, new PointF(200, 700)));
         outsideItemArrayList.add(new Item(Items.EMPTY_POT, new PointF(300, 150)));
 
+        // Khởi tạo quái Skeleton và Monster
+// spawn skeletons & monsters
+        ArrayList<Skeleton> skeletonsOutside = HelpMethods.GetSkeletonsRandomized(5, outsideArray);
+        ArrayList<Monster> monstersOutside = HelpMethods.GetMonstersRandomized(2, outsideArray);
 
-        GameMap insideMap = new GameMap(insideArray, Tiles.INSIDE, null, null, HelpMethods.GetSkeletonsRandomized(2, insideArray), null);
-        GameMap insideFlatRoofHouseMap = new GameMap(insideFlatHouseArray, Tiles.INSIDE, null, null, null, null);
-        GameMap insideGreenRoofHouseMap = new GameMap(insideGreenRoofHouseArr, Tiles.INSIDE, null, null, null, null);
+// inside maps (skeletons only)
+        GameMap insideMap = new GameMap(
+                insideArray,
+                Tiles.INSIDE,
+                null,
+                null,
+                HelpMethods.GetSkeletonsRandomized(2, insideArray), // skeletons
+                null, // monsters
+                null  // items
+        );
 
-        GameMap outsideMap = new GameMap(outsideArray, Tiles.OUTSIDE, buildingArrayList, gameObjectArrayList, HelpMethods.GetSkeletonsRandomized(5, outsideArray), outsideItemArrayList);
+        GameMap insideFlatRoofHouseMap = new GameMap(
+                insideFlatHouseArray,
+                Tiles.INSIDE,
+                null,
+                null,
+                null, // skeletons
+                null, // monsters
+                null  // items
+        );
 
+        GameMap insideGreenRoofHouseMap = new GameMap(
+                insideGreenRoofHouseArr,
+                Tiles.INSIDE,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
 
-//        HelpMethods.AddDoorwayToGameMap(outsideMap, insideMap, 0);
-        HelpMethods.ConnectTwoDoorways(
-                outsideMap,
+// outside map: buildings, objects, skeletons, monsters, items
+        GameMap outsideMap = new GameMap(
+                outsideArray,
+                Tiles.OUTSIDE,
+                buildingArrayList,
+                gameObjectArrayList,
+                skeletonsOutside,
+                monstersOutside,
+                outsideItemArrayList
+        );
+
+        // Nối các doorway
+        HelpMethods.ConnectTwoDoorways(outsideMap,
                 HelpMethods.CreatePointForDoorway(outsideMap, 0),
                 insideMap,
                 HelpMethods.CreatePointForDoorway(3, 6));
 
-        HelpMethods.ConnectTwoDoorways(
-                outsideMap,
+        HelpMethods.ConnectTwoDoorways(outsideMap,
                 HelpMethods.CreatePointForDoorway(outsideMap, 1),
                 insideFlatRoofHouseMap,
                 HelpMethods.CreatePointForDoorway(3, 6));
 
-        HelpMethods.ConnectTwoDoorways(
-                outsideMap,
+        HelpMethods.ConnectTwoDoorways(outsideMap,
                 HelpMethods.CreatePointForDoorway(outsideMap, 2),
                 insideGreenRoofHouseMap,
                 HelpMethods.CreatePointForDoorway(3, 6));
 
-
         currentMap = outsideMap;
     }
 }
+
+

@@ -12,7 +12,8 @@ import com.tutorial.androidgametutorial.helpers.interfaces.BitmapMethods;
 public enum GameCharacters implements BitmapMethods {
 
     PLAYER(R.drawable.player_spritesheet),
-    SKELETON(R.drawable.skeleton_spritesheet);
+    SKELETON(R.drawable.skeleton_spritesheet),
+    MONSTER(R.drawable.taur_monter);
 
     private Bitmap spriteSheet;
     private Bitmap[][] sprites = new Bitmap[7][4];
