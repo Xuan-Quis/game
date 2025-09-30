@@ -8,6 +8,7 @@ import com.tutorial.androidgametutorial.entities.Building;
 import com.tutorial.androidgametutorial.entities.Buildings;
 import com.tutorial.androidgametutorial.entities.GameObject;
 import com.tutorial.androidgametutorial.entities.GameObjects;
+import com.tutorial.androidgametutorial.entities.enemies.Boom;
 import com.tutorial.androidgametutorial.entities.enemies.Monster;
 import com.tutorial.androidgametutorial.entities.enemies.Skeleton;
 import com.tutorial.androidgametutorial.entities.items.Item;
@@ -177,10 +178,11 @@ public class MapManager {
         outsideItemArrayList.add(new Item(Items.MEDIPACK, new PointF(200, 700)));
         outsideItemArrayList.add(new Item(Items.EMPTY_POT, new PointF(300, 150)));
 
-        // Khởi tạo quái Skeleton và Monster
-// spawn skeletons & monsters
+        // Khởi tạo quái Skeleton, Monster và Boom
+// spawn skeletons, monsters & booms
         ArrayList<Skeleton> skeletonsOutside = HelpMethods.GetSkeletonsRandomized(5, outsideArray);
-        ArrayList<Monster> monstersOutside = HelpMethods.GetMonstersRandomized(2, outsideArray);
+        ArrayList<Monster> monstersOutside = HelpMethods.GetMonstersRandomized(0, outsideArray);
+        ArrayList<Boom> boomsOutside = HelpMethods.GetBoomsRandomized(3, outsideArray);
 
 // inside maps (skeletons only)
         GameMap insideMap = new GameMap(
@@ -190,6 +192,7 @@ public class MapManager {
                 null,
                 HelpMethods.GetSkeletonsRandomized(2, insideArray), // skeletons
                 null, // monsters
+                null, // booms
                 null  // items
         );
 
@@ -200,6 +203,7 @@ public class MapManager {
                 null,
                 null, // skeletons
                 null, // monsters
+                null, // booms
                 null  // items
         );
 
@@ -208,12 +212,13 @@ public class MapManager {
                 Tiles.INSIDE,
                 null,
                 null,
-                null,
-                null,
-                null
+                null, // skeletons
+                null, // monsters
+                null, // booms
+                null  // items
         );
 
-// outside map: buildings, objects, skeletons, monsters, items
+// outside map: buildings, objects, skeletons, monsters, booms, items
         GameMap outsideMap = new GameMap(
                 outsideArray,
                 Tiles.OUTSIDE,
@@ -221,6 +226,7 @@ public class MapManager {
                 gameObjectArrayList,
                 skeletonsOutside,
                 monstersOutside,
+                boomsOutside,
                 outsideItemArrayList
         );
 

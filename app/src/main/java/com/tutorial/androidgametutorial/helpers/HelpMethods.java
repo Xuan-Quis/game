@@ -10,6 +10,7 @@ import com.tutorial.androidgametutorial.entities.Building;
 import com.tutorial.androidgametutorial.entities.Character;
 import com.tutorial.androidgametutorial.entities.GameObject;
 import com.tutorial.androidgametutorial.entities.Player;
+import com.tutorial.androidgametutorial.entities.enemies.Boom;
 import com.tutorial.androidgametutorial.entities.enemies.Monster;
 import com.tutorial.androidgametutorial.entities.enemies.Skeleton;
 import com.tutorial.androidgametutorial.environments.Doorway;
@@ -87,6 +88,21 @@ public class HelpMethods {
         }
 
         return monsterArrayList;
+    }
+
+    public static ArrayList<Boom> GetBoomsRandomized(int amount, int[][] gameMapArray) {
+        int width = (gameMapArray[0].length - 1) * GameConstants.Sprite.SIZE;
+        int height = (gameMapArray.length - 1) * GameConstants.Sprite.SIZE;
+
+        ArrayList<Boom> boomArrayList = new ArrayList<>();
+
+        for (int i = 0; i < amount; i++) {
+            float x = (float) (Math.random() * width);
+            float y = (float) (Math.random() * height);
+            boomArrayList.add(new Boom(new PointF(x, y)));
+        }
+
+        return boomArrayList;
     }
 
     public static float MoveNextToTileUpDown(RectF hitbox, float cameraY, float deltaY) {

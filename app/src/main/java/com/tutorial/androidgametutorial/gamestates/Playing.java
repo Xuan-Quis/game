@@ -21,6 +21,9 @@ import com.tutorial.androidgametutorial.entities.GameObject;
 import com.tutorial.androidgametutorial.entities.Player;
 import com.tutorial.androidgametutorial.entities.Projectile;
 import com.tutorial.androidgametutorial.entities.Weapons;
+import com.tutorial.androidgametutorial.entities.EffectExplosion;
+import com.tutorial.androidgametutorial.entities.SparkSkill;
+import com.tutorial.androidgametutorial.entities.enemies.Boom;
 import com.tutorial.androidgametutorial.entities.enemies.Monster;
 import com.tutorial.androidgametutorial.entities.enemies.Skeleton;
 import com.tutorial.androidgametutorial.entities.items.Item;
@@ -61,6 +64,8 @@ public class Playing extends BaseState implements GameStateInterface {
     private final Paint projectilePaint = new Paint();
    // thời điểm gây sát thương (ms)
     private ArrayList<ExplosionEffect> explosionEffects = new ArrayList<>();
+    private ArrayList<EffectExplosion> effectExplosions = new ArrayList<>();
+    private ArrayList<SparkSkill> sparkSkills = new ArrayList<>();
 
     public Playing(Game game) {
         super(game);
@@ -131,13 +136,11 @@ public class Playing extends BaseState implements GameStateInterface {
         mapManager.setCameraValues(cameraX, cameraY);
         checkForDoorway();
 
-
         if (player.isAttacking()) if (!player.isAttackChecked()) checkPlayerAttack();
 
         if (mapManager.getCurrentMap().getSkeletonArrayList() != null)
             for (Skeleton skeleton : mapManager.getCurrentMap().getSkeletonArrayList())
                 if (skeleton.isActive()) {
-                    // Sử dụng phương thức update mới với tham số Player và camera để Skeleton có thể đuổi theo
                     skeleton.update(delta, mapManager.getCurrentMap(), player, cameraX, cameraY);
                     if (skeleton.isAttacking()) {
                         if (!skeleton.isAttackChecked()) {
@@ -164,23 +167,53 @@ public class Playing extends BaseState implements GameStateInterface {
                     }
                 }
 
-
+        if (mapManager.getCurrentMap().getBoomArrayList() != null)
+            for (Boom boom : mapManager.getCurrentMap().getBoomArrayList())
+                if (boom.isActive()) {
+                    boom.update(delta, mapManager.getCurrentMap(), player, cameraX, cameraY);
+                    if (boom.isExploding()) {
+                        // Boom tự động gây sát thương khi exploding, không cần check attack
+                    } else if (!boom.isPreparingAttack()) {
+                        if (HelpMethods.IsPlayerCloseForAttack(boom, player, cameraY, cameraX)) {
+                            boom.prepareAttack(player, cameraX, cameraY);
+                        }
+                    }
+                }
 
         sortArray();
         updateProjectiles(delta);
-
+        updateEffectExplosions(delta);
+        updateSparkSkills(delta);
     }
-
 
     private void buildEntityList() {
         listOfDrawables = mapManager.getCurrentMap().getDrawableList();
-        listOfDrawables[listOfDrawables.length - 1] = player;
+        // Khởi tạo Boom với các resource id ảnh di chuyển và tấn công
+        int[] boomMoveResIds = new int[] {
+            R.drawable.boom_front,
+            R.drawable.boom_left,
+            R.drawable.boom_right,
+            R.drawable.boom_behind
+        };
+        int[] boomAttackResIds = new int[] {
+            R.drawable.boom_smile,
+            R.drawable.boom_bum,
+            R.drawable.boom_bum_2,
+            R.drawable.boom_bum_3,
+            R.drawable.boom_bum_4,
+                R.drawable.boom_bum_5,
+                R.drawable.boom_bum_6
+        };
+        // Thêm Boom vào listOfDrawables (nếu có chỗ trống hoặc cần mở rộng mảng)
+        Entity[] newList = Arrays.copyOf(listOfDrawables, listOfDrawables.length + 1);
+        newList[newList.length - 2] = player;
+        listOfDrawables = newList;
         listOfEntitiesMade = true;
     }
 
     private void sortArray() {
         player.setLastCameraYValue(cameraY);
-        Arrays.sort(listOfDrawables);
+//        Arrays.sort(listOfDrawables);
     }
 
     public void setCameraValues(PointF cameraPos) {
@@ -291,6 +324,10 @@ private void checkPlayerAttack() {
 
         // 🔥 Bổ sung: vẽ projectile
         drawProjectiles(c);
+        // Vẽ EffectExplosion
+        drawEffectExplosions(c);
+        // Vẽ SparkSkills
+        drawSparkSkills(c);
     }
     private void drawProjectiles(Canvas c) {
         for (Projectile p : projectiles) {
@@ -303,8 +340,32 @@ private void checkPlayerAttack() {
             effect.render(c, cameraX, cameraY);
         }
     }
+
+    private void drawEffectExplosions(Canvas c) {
+        for (EffectExplosion explosion : effectExplosions) {
+            if (explosion.isActive()) {
+                explosion.render(c, cameraX, cameraY);
+            }
+        }
+    }
+
+    private void drawSparkSkills(Canvas c) {
+        for (SparkSkill sparkSkill : sparkSkills) {
+            if (sparkSkill.isActive()) {
+                sparkSkill.render(c, cameraX, cameraY);
+            }
+        }
+    }
     public void castThrowSwordSkill() {
         player.castThrowSword(this);
+    }
+
+    public void castEffectExplosionSkill() {
+        player.castEffectExplosion(this);
+    }
+
+    public void castSparkSkill() {
+        player.castSparkSkill(this);
     }
     private void drawSortedEntities(Canvas c) {
         for (Entity e : listOfDrawables) {
@@ -323,8 +384,10 @@ private void checkPlayerAttack() {
             else if (e instanceof Monster monster) {
                 if (monster.isActive())
                     drawCharacter(c, monster);
+            } else if (e instanceof Boom boom) {
+                if (boom.isActive())
+                    drawBoom(c, boom);
             }
-
         }
     }
 
@@ -363,6 +426,15 @@ private void checkPlayerAttack() {
             drawHealthBar(canvas, c);
 
 
+    }
+
+    private void drawBoom(Canvas canvas, Boom boom) {
+        canvas.drawBitmap(Weapons.SHADOW.getWeaponImg(), boom.getHitbox().left + cameraX, boom.getHitbox().bottom - 5 * GameConstants.Sprite.SCALE_MULTIPLIER + cameraY, null);
+        canvas.drawBitmap(boom.getBoomSprite(), boom.getHitbox().left + cameraX - X_DRAW_OFFSET, boom.getHitbox().top + cameraY - GameConstants.Sprite.Y_DRAW_OFFSET, null);
+        canvas.drawRect(boom.getHitbox().left + cameraX, boom.getHitbox().top + cameraY, boom.getHitbox().right + cameraX, boom.getHitbox().bottom + cameraY, redPaint);
+
+        if (boom.getCurrentHealth() < boom.getMaxHealth())
+            drawHealthBar(canvas, boom);
     }
 
     private void drawHealthBar(Canvas canvas, Character c) {
@@ -481,6 +553,14 @@ private void checkPlayerAttack() {
         projectiles.add(p);
     }
 
+    public void addEffectExplosion(EffectExplosion explosion) {
+        effectExplosions.add(explosion);
+    }
+
+    public void addSparkSkill(SparkSkill sparkSkill) {
+        sparkSkills.add(sparkSkill);
+    }
+
     public Skeleton findNearestSkeleton(float px, float py, float range) {
         Skeleton nearest = null;
         float minDistSq = range * range;
@@ -536,12 +616,40 @@ private void checkPlayerAttack() {
             if (!effect.isActive()) it.remove();
         }
     }
+
+    private void updateEffectExplosions(double delta) {
+        Iterator<EffectExplosion> it = effectExplosions.iterator();
+        while (it.hasNext()) {
+            EffectExplosion explosion = it.next();
+            if (explosion.isActive()) {
+                explosion.update(delta, this);
+            } else {
+                it.remove();
+            }
+        }
+    }
+
+    private void updateSparkSkills(double delta) {
+        Iterator<SparkSkill> it = sparkSkills.iterator();
+        while (it.hasNext()) {
+            SparkSkill sparkSkill = it.next();
+            if (sparkSkill.isActive()) {
+                sparkSkill.update(delta, this);
+            } else {
+                it.remove();
+            }
+        }
+    }
     public float getCameraX() {
         return cameraX;
     }
 
     public float getCameraY() {
         return cameraY;
+    }
+
+    public MapManager getMapManager() {
+        return mapManager;
     }
 
     private void playPlayerHitWall() {

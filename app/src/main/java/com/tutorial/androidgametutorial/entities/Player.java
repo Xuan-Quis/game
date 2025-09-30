@@ -22,6 +22,14 @@ public class Player extends Character {
     private int skillRange = 500;
     private int skillDamage = 100;
 
+    // EffectExplosion skill
+    private long lastExplosionSkillTime = 0;
+    private final long explosionSkillCooldown = 10000; // 10 giây hồi chiêu
+
+    // Spark skill
+    private long lastSparkSkillTime = 0;
+    private final long sparkSkillCooldown = 1000; // 1 giây hồi chiêu
+
     private static SoundPool soundPool;
     private static int skillSoundId;
 
@@ -99,5 +107,51 @@ public class Player extends Character {
 
         playing.addProjectile(sword);
 
+    }
+
+    // EffectExplosion skill methods
+    public boolean canCastExplosion() {
+        return System.currentTimeMillis() - lastExplosionSkillTime >= explosionSkillCooldown;
+    }
+
+    public void setLastExplosionSkillTime() {
+        lastExplosionSkillTime = System.currentTimeMillis();
+    }
+
+    public void castEffectExplosion(Playing playing) {
+        if (!canCastExplosion()) return;
+        setLastExplosionSkillTime();
+
+        soundPool.play(skillSoundId, 1, 1, 1, 0, 1f);
+
+        // chuyển từ screen coords -> world coords
+        float worldPx = getHitbox().centerX() - playing.getCameraX();
+        float worldPy = getHitbox().centerY() - playing.getCameraY();
+
+        EffectExplosion explosion = new EffectExplosion(new PointF(worldPx, worldPy));
+        playing.addEffectExplosion(explosion);
+    }
+
+    // Spark skill methods
+    public boolean canCastSpark() {
+        return System.currentTimeMillis() - lastSparkSkillTime >= sparkSkillCooldown;
+    }
+
+    public void setLastSparkSkillTime() {
+        lastSparkSkillTime = System.currentTimeMillis();
+    }
+
+    public void castSparkSkill(Playing playing) {
+        if (!canCastSpark()) return;
+        setLastSparkSkillTime();
+
+        soundPool.play(skillSoundId, 1, 1, 1, 0, 1f);
+
+        // Player hitbox đang ở screen coordinates, cần chuyển sang world coordinates
+        float worldPx = getHitbox().centerX() - playing.getCameraX();
+        float worldPy = getHitbox().centerY() - playing.getCameraY();
+
+        SparkSkill sparkSkill = new SparkSkill(new PointF(worldPx, worldPy), playing);
+        playing.addSparkSkill(sparkSkill);
     }
 }

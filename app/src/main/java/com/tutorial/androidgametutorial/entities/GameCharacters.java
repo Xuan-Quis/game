@@ -13,7 +13,10 @@ public enum GameCharacters implements BitmapMethods {
 
     PLAYER(R.drawable.player_spritesheet),
     SKELETON(R.drawable.skeleton_spritesheet),
-    MONSTER(R.drawable.taur_monter);
+    MONSTER(R.drawable.taur_monter),
+    BOOM(R.drawable.boom_smile);
+
+
 
     private Bitmap spriteSheet;
     private Bitmap[][] sprites = new Bitmap[7][4];

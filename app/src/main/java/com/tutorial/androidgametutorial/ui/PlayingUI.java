@@ -28,6 +28,11 @@ public class PlayingUI {
     private final int skillBtnRadius = attackBtnRadius;
     private int skillBtnPointerId = -1;
 
+    // Spark skill button (phía trên nút đánh thường)
+    private final PointF sparkSkillBtnCenterPos = new PointF(attackBtnCenterPos.x, attackBtnCenterPos.y - 200);
+    private final int sparkSkillBtnRadius = skillBtnRadius;
+    private int sparkSkillBtnPointerId = -1;
+
     // Paint để vẽ
     private final Paint circlePaint;
 
@@ -66,6 +71,9 @@ public class PlayingUI {
 
         // Skill
         c.drawCircle(skillBtnCenterPos.x, skillBtnCenterPos.y, skillBtnRadius, circlePaint);
+
+        // Spark Skill
+        c.drawCircle(sparkSkillBtnCenterPos.x, sparkSkillBtnCenterPos.y, sparkSkillBtnRadius, circlePaint);
 
         // Menu
         c.drawBitmap(
@@ -121,6 +129,11 @@ public class PlayingUI {
                         playing.castThrowSwordSkill(); // gọi hàm skill trong Playing
                         skillBtnPointerId = pointerId;
                     }
+                } else if (checkInsideSparkSkillBtn(eventPos)) {
+                    if (sparkSkillBtnPointerId < 0) {
+                        playing.castSparkSkill(); // gọi hàm spark skill trong Playing
+                        sparkSkillBtnPointerId = pointerId;
+                    }
                 } else {
                     if (isIn(eventPos, btnMenu))
                         btnMenu.setPushed(true, pointerId);
@@ -156,6 +169,9 @@ public class PlayingUI {
                     if (pointerId == skillBtnPointerId) {
                         skillBtnPointerId = -1;
                     }
+                    if (pointerId == sparkSkillBtnPointerId) {
+                        sparkSkillBtnPointerId = -1;
+                    }
                 }
             }
         }
@@ -176,6 +192,10 @@ public class PlayingUI {
 
     private boolean checkInsideSkillBtn(PointF eventPos) {
         return isInsideRadius(eventPos, skillBtnCenterPos, skillBtnRadius);
+    }
+
+    private boolean checkInsideSparkSkillBtn(PointF eventPos) {
+        return isInsideRadius(eventPos, sparkSkillBtnCenterPos, sparkSkillBtnRadius);
     }
 
     private boolean isInsideRadius(PointF eventPos, PointF center, int r) {
