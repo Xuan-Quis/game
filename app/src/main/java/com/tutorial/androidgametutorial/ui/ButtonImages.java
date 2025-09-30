@@ -12,7 +12,8 @@ public enum ButtonImages implements BitmapMethods {
     MENU_START(R.drawable.mainmenu_button_start, 300, 140),
     PLAYING_MENU(R.drawable.playing_button_menu, 140, 140),
     MENU_MENU(R.drawable.mainmenu_button_menu, 300, 140),
-    MENU_REPLAY(R.drawable.mainmenu_button_replay, 300, 140);
+    MENU_REPLAY(R.drawable.mainmenu_button_replay, 300, 140),
+    MENU_ESCAPE(R.drawable.mainmenu_button_menu, 300, 140); // Tạm thời dùng menu button, sẽ thay sau
 
     private int width, height;
     private Bitmap normal, pushed;

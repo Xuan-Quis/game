@@ -25,9 +25,10 @@ public class Monster extends Character {
     private float cameraX, cameraY;
 
     // speeds (px / s)
-    private float normalSpeed = 280f;
-    private float chaseSpeed = 460f;
-    private float chaseRange = 380f;
+    private float normalSpeed = 220f;       // Giảm tốc độ bình thường
+    private float chaseSpeed = 650f;        // Tăng tốc độ khi đuổi người chơi (cao hơn Skeleton)
+    private float chaseRange = 900f;        // Tăng phạm vi phát hiện
+    private float aggressiveChaseRange = 1300f; // Phạm vi đuổi rất tích cực
 
     // attack timers (ms)
     private long timerBeforeAttack, timerAttackDuration;

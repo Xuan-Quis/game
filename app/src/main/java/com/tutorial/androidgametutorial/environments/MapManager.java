@@ -109,6 +109,80 @@ public class MapManager {
         return currentMap;
     }
 
+    public void resetMapToInitialState() {
+        // Clear tất cả enemies hiện có trên map
+        if (currentMap.getSkeletonArrayList() != null) {
+            currentMap.getSkeletonArrayList().clear();
+        }
+        if (currentMap.getMonsterArrayList() != null) {
+            currentMap.getMonsterArrayList().clear();
+        }
+        if (currentMap.getBoomArrayList() != null) {
+            currentMap.getBoomArrayList().clear();
+        }
+        if (currentMap.getItemArrayList() != null) {
+            currentMap.getItemArrayList().clear();
+        }
+
+        // Khôi phục lại số lượng quái vật BAN ĐẦU như khi vào game lần đầu
+        // Tạo lại 5 Skeleton ngẫu nhiên (như trong initTestMap)
+        ArrayList<Skeleton> initialSkeletons = HelpMethods.GetSkeletonsRandomized(5, getCurrentMapArray());
+        if (currentMap.getSkeletonArrayList() != null) {
+            currentMap.getSkeletonArrayList().addAll(initialSkeletons);
+        }
+
+        // Tạo lại 3 Boom ngẫu nhiên (như trong initTestMap)
+        ArrayList<Boom> initialBooms = HelpMethods.GetBoomsRandomized(3, getCurrentMapArray());
+        if (currentMap.getBoomArrayList() != null) {
+            currentMap.getBoomArrayList().addAll(initialBooms);
+            // Set playing reference cho các Boom mới
+            for (Boom boom : initialBooms) {
+                boom.setPlaying(playing);
+            }
+        }
+
+        // Monster ban đầu = 0 (như trong initTestMap), nên không cần tạo
+
+        // Khôi phục lại items ban đầu
+        ArrayList<Item> initialItems = new ArrayList<>();
+        initialItems.add(new Item(Items.FISH, new PointF(560, 560)));
+        initialItems.add(new Item(Items.MEDIPACK, new PointF(200, 700)));
+        initialItems.add(new Item(Items.EMPTY_POT, new PointF(300, 150)));
+
+        if (currentMap.getItemArrayList() != null) {
+            currentMap.getItemArrayList().addAll(initialItems);
+        }
+
+        System.out.println("🔄 Map đã được reset về trạng thái ban đầu:");
+        System.out.println("👹 5 Skeletons được tạo lại");
+        System.out.println("💥 3 Booms được tạo lại");
+        System.out.println("🎁 3 Items ban đầu được tạo lại");
+        System.out.println("🚫 0 Monsters (như ban đầu)");
+    }
+
+    private int[][] getCurrentMapArray() {
+        // Trả về mảng map hiện tại để spawn enemies
+        // Giả sử đây là outside map array (có thể cần điều chỉnh)
+        return new int[][]{
+                {188, 189, 279, 275, 187, 189, 279, 275, 279, 276, 275, 279, 275, 275, 279, 275, 278, 276, 275, 278, 275, 279, 275},
+                {188, 189, 275, 279, 187, 189, 276, 275, 279, 275, 277, 275, 275, 277, 276, 275, 279, 278, 278, 275, 275, 279, 275},
+                {188, 189, 275, 276, 187, 189, 276, 279, 275, 278, 279, 279, 275, 275, 278, 278, 275, 275, 275, 276, 275, 279, 275},
+                {254, 189, 275, 279, 187, 214, 166, 166, 166, 166, 166, 166, 166, 167, 275, 276, 275, 276, 279, 277, 275, 279, 275},
+                {188, 189, 275, 275, 209, 210, 210, 210, 210, 195, 210, 210, 193, 189, 275, 277, 168, 275, 278, 275, 275, 276, 275},
+                {188, 189, 279, 276, 279, 275, 276, 275, 277, 190, 275, 279, 187, 189, 275, 279, 190, 275, 279, 275, 275, 279, 275},
+                {188, 189, 275, 275, 275, 279, 278, 275, 275, 190, 276, 277, 187, 258, 232, 232, 239, 232, 232, 232, 232, 233, 275},
+                {188, 189, 275, 279, 275, 275, 231, 232, 232, 238, 275, 275, 187, 189, 275, 275, 275, 275, 275, 275, 275, 275, 275},
+                {188, 189, 276, 279, 278, 275, 276, 275, 275, 275, 275, 276, 187, 189, 276, 275, 277, 275, 279, 275, 279, 275, 276},
+                {188, 189, 275, 275, 279, 275, 279, 275, 276, 275, 275, 277, 187, 189, 279, 275, 275, 275, 275, 275, 275, 275, 275},
+                {188, 214, 167, 276, 275, 277, 275, 275, 278, 275, 276, 275, 187, 189, 275, 275, 278, 275, 275, 276, 275, 277, 275},
+                {254, 188, 214, 167, 275, 278, 275, 275, 275, 275, 279, 275, 187, 189, 275, 275, 275, 168, 275, 275, 275, 275, 278},
+                {188, 188, 188, 214, 167, 279, 275, 277, 275, 277, 276, 275, 187, 258, 232, 232, 232, 238, 275, 279, 275, 275, 279},
+                {188, 188, 188, 253, 214, 167, 275, 277, 168, 275, 275, 275, 187, 189, 275, 275, 275, 275, 275, 279, 275, 275, 275},
+                {253, 188, 188, 188, 256, 214, 167, 275, 235, 232, 232, 232, 259, 189, 279, 275, 275, 277, 275, 275, 275, 279, 275},
+                {188, 188, 188, 254, 188, 256, 214, 167, 275, 275, 277, 275, 187, 189, 275, 278, 275, 275, 279, 275, 279, 278, 275}
+        };
+    }
+
     private void initTestMap() {
 
         int[][] outsideArray = {
@@ -249,5 +323,3 @@ public class MapManager {
         currentMap = outsideMap;
     }
 }
-
-

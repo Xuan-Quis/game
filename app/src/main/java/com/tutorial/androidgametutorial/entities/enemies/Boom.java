@@ -22,9 +22,10 @@ public class Boom extends Character {
     private boolean chasing = false;
     private Player targetPlayer;
     private float cameraX, cameraY;
-    private float normalSpeed = 250f; // Chậm hơn Skeleton một chút
-    private float chaseSpeed = 400f;
-    private float chaseRange = 150f; // Giảm từ 350f xuống 150f
+    private float normalSpeed = 180f; // Giảm tốc độ bình thường
+    private float chaseSpeed = 700f;        // Tăng tốc độ khi đuổi người chơi (cao nhất trong 3 loại)
+    private float chaseRange = 1000f;       // Tăng phạm vi phát hiện
+    private float aggressiveChaseRange = 1500f; // Phạm vi đuổi rất tích cực (cao nhất)
 
     // Boom attack system
     private boolean isExploding = false;
@@ -61,10 +62,16 @@ public class Boom extends Character {
 
         float distanceToPlayer = getDistanceToPlayer(player, cameraX, cameraY);
 
-        if (distanceToPlayer <= chaseRange && !preparingAttack && !isExploding) {
+        // Luôn luôn chase người chơi trong phạm vi rất xa, chỉ dừng khi đang nổ
+        if (distanceToPlayer <= aggressiveChaseRange && !preparingAttack && !isExploding) {
             chasing = true;
-        } else if (distanceToPlayer > chaseRange * 1.5f) {
+        } else if (distanceToPlayer > aggressiveChaseRange * 2f) {
             chasing = false;
+        }
+
+        // Nếu ở gần người chơi thì luôn chase
+        if (distanceToPlayer <= chaseRange) {
+            chasing = true;
         }
 
         if (moving) {

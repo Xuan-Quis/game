@@ -22,9 +22,10 @@ public class Skeleton extends Character {
     private boolean chasing = false;
     private Player targetPlayer;
     private float cameraX, cameraY;
-    private float normalSpeed = 300f;
-    private float chaseSpeed = 450f;
-    private float chaseRange = 400f;
+    private float normalSpeed = 200f;  // Giảm tốc độ bình thường
+    private float chaseSpeed = 600f;   // Tăng tốc độ khi đuổi người chơi
+    private float chaseRange = 800f;   // Tăng phạm vi phát hiện người chơi
+    private float aggressiveChaseRange = 1200f; // Phạm vi đuổi rất tích cực
 
     private long timerBeforeAttack, timerAttackDuration;
     private long timeToAttack = 500, timeForAttackDuration = 250;
@@ -94,10 +95,16 @@ public class Skeleton extends Character {
 
         float distanceToPlayer = getDistanceToPlayer(player, cameraX, cameraY);
 
-        if (distanceToPlayer <= chaseRange && !preparingAttack && !attacking) {
+        // Luôn luôn chase người chơi trong phạm vi rất xa, chỉ dừng khi đang tấn công
+        if (distanceToPlayer <= aggressiveChaseRange && !preparingAttack && !attacking) {
             chasing = true;
-        } else if (distanceToPlayer > chaseRange * 1.5f) {
+        } else if (distanceToPlayer > aggressiveChaseRange * 2f) {
             chasing = false;
+        }
+
+        // Nếu ở gần người chơi thì luôn chase
+        if (distanceToPlayer <= chaseRange) {
+            chasing = true;
         }
 
         if (moving) {

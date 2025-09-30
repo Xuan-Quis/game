@@ -221,19 +221,26 @@ public class Player extends Character {
     }
     
     // Getter methods
+    public boolean hasSpeedBoost() {
+        return speedMultiplier > 1.0f;
+    }
+
     public boolean hasShield() {
         return shieldHits > 0;
     }
-    
+
     public int getShieldHits() {
         return shieldHits;
     }
-    
+
+    public long getSpeedBoostTimeLeft() {
+        if (!hasSpeedBoost()) return 0;
+        long elapsed = System.currentTimeMillis() - speedBoostStartTime;
+        long timeLeft = speedBoostDuration - elapsed;
+        return Math.max(0, timeLeft);
+    }
+
     public float getSpeedMultiplier() {
         return speedMultiplier;
-    }
-    
-    public boolean hasSpeedBoost() {
-        return speedMultiplier > 1.0f;
     }
 }

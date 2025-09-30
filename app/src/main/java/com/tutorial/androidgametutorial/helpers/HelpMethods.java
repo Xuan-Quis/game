@@ -239,6 +239,104 @@ public class HelpMethods {
         return IsTilesWalkable(tileIds, gameMap.getFloorType());
     }
 
+    // ========== HÀM RIÊNG CHO MAP NGOÀI - KHÔNG KIỂM TRA BIÊN MAP ==========
+    public static boolean CanWalkHereOutside(RectF hitbox, float deltaX, float deltaY, GameMap gameMap) {
+        // CHỈ KIỂM TRA VA CHẠM VỚI OBJECTS VÀ BUILDINGS - KHÔNG KIỂM TRA BIÊN MAP
+
+        //Objects
+        if (gameMap.getGameObjectArrayList() != null) {
+            RectF tempHitbox = new RectF(hitbox.left + deltaX, hitbox.top + deltaY, hitbox.right + deltaX, hitbox.bottom + deltaY);
+            for (GameObject go : gameMap.getGameObjectArrayList()) {
+                if (RectF.intersects(go.getHitbox(), tempHitbox))
+                    return false;
+            }
+        }
+
+        //Buildings
+        if (gameMap.getBuildingArrayList() != null) {
+            RectF tempHitbox = new RectF(hitbox.left + deltaX, hitbox.top + deltaY, hitbox.right + deltaX, hitbox.bottom + deltaY);
+            for (Building b : gameMap.getBuildingArrayList())
+                if (RectF.intersects(b.getHitbox(), tempHitbox))
+                    return false;
+        }
+
+        // KHÔNG KIỂM TRA TILE KHI RA NGOÀI BIÊN MAP để tránh ArrayIndexOutOfBoundsException
+        // Chỉ kiểm tra tile nếu vẫn trong biên map
+        if (hitbox.left + deltaX >= 0 && hitbox.top + deltaY >= 0 &&
+            hitbox.right + deltaX < gameMap.getMapWidth() && hitbox.bottom + deltaY < gameMap.getMapHeight()) {
+            Point[] tileCords = GetTileCords(hitbox, deltaX, deltaY);
+            int[] tileIds = GetTileIds(tileCords, gameMap);
+            return IsTilesWalkable(tileIds, gameMap.getFloorType());
+        }
+
+        // Nếu ra ngoài biên map thì cho phép di chuyển (để trigger game over sau)
+        return true;
+    }
+
+    public static boolean CanWalkHereUpDownOutside(RectF hitbox, float deltaY, float currentCameraX, GameMap gameMap) {
+        // CHỈ KIỂM TRA VA CHẠM VỚI OBJECTS VÀ BUILDINGS - KHÔNG KIỂM TRA BIÊN MAP
+
+        //Objects
+        if (gameMap.getGameObjectArrayList() != null) {
+            RectF tempHitbox = new RectF(hitbox.left, hitbox.top + deltaY, hitbox.right, hitbox.bottom + deltaY);
+            for (GameObject go : gameMap.getGameObjectArrayList()) {
+                if (RectF.intersects(go.getHitbox(), tempHitbox))
+                    return false;
+            }
+        }
+
+        //Buildings
+        if (gameMap.getBuildingArrayList() != null) {
+            RectF tempHitbox = new RectF(hitbox.left, hitbox.top + deltaY, hitbox.right, hitbox.bottom + deltaY);
+            for (Building b : gameMap.getBuildingArrayList())
+                if (RectF.intersects(b.getHitbox(), tempHitbox))
+                    return false;
+        }
+
+        // KHÔNG KIỂM TRA TILE KHI RA NGOÀI BIÊN MAP để tránh ArrayIndexOutOfBoundsException
+        // Chỉ kiểm tra tile nếu vẫn trong biên map
+        if (hitbox.top + deltaY >= 0 && hitbox.bottom + deltaY < gameMap.getMapHeight()) {
+            Point[] tileCords = GetTileCords(hitbox, 0, deltaY);
+            int[] tileIds = GetTileIds(tileCords, gameMap);
+            return IsTilesWalkable(tileIds, gameMap.getFloorType());
+        }
+
+        // Nếu ra ngoài biên map thì cho phép di chuyển (để trigger game over sau)
+        return true;
+    }
+
+    public static boolean CanWalkHereLeftRightOutside(RectF hitbox, float deltaX, float currentCameraY, GameMap gameMap) {
+        // CHỈ KIỂM TRA VA CHẠM VỚI OBJECTS VÀ BUILDINGS - KHÔNG KIỂM TRA BIÊN MAP
+
+        //Objects
+        if (gameMap.getGameObjectArrayList() != null) {
+            RectF tempHitbox = new RectF(hitbox.left + deltaX, hitbox.top, hitbox.right + deltaX, hitbox.bottom);
+            for (GameObject go : gameMap.getGameObjectArrayList()) {
+                if (RectF.intersects(go.getHitbox(), tempHitbox))
+                    return false;
+            }
+        }
+
+        //Buildings
+        if (gameMap.getBuildingArrayList() != null) {
+            RectF tempHitbox = new RectF(hitbox.left + deltaX, hitbox.top, hitbox.right + deltaX, hitbox.bottom);
+            for (Building b : gameMap.getBuildingArrayList())
+                if (RectF.intersects(b.getHitbox(), tempHitbox))
+                    return false;
+        }
+
+        // KHÔNG KIỂM TRA TILE KHI RA NGOÀI BIÊN MAP để tránh ArrayIndexOutOfBoundsException
+        // Chỉ kiểm tra tile nếu vẫn trong biên map
+        if (hitbox.left + deltaX >= 0 && hitbox.right + deltaX < gameMap.getMapWidth()) {
+            Point[] tileCords = GetTileCords(hitbox, deltaX, 0);
+            int[] tileIds = GetTileIds(tileCords, gameMap);
+            return IsTilesWalkable(tileIds, gameMap.getFloorType());
+        }
+
+        // Nếu ra ngoài biên map thì cho phép di chuyển (để trigger game over sau)
+        return true;
+    }
+
 
     private static int[] GetTileIds(Point[] tileCords, GameMap gameMap) {
         int[] tileIds = new int[4];

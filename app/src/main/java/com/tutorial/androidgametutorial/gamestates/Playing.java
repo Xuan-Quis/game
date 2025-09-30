@@ -428,15 +428,29 @@ private void checkPlayerAttack() {
     }
     
     private void spawnEnemies() {
+        // CHỈ SPAWN QUÁI Ở MAP NGOÀI - KHÔNG SPAWN Ở MAP TRONG NHÀ
+        if (!isOutsideMap()) {
+            System.out.println("🏠 Đang ở trong nhà - không spawn quái");
+            return; // Thoát ngay nếu đang ở trong nhà
+        }
+
         // Spawn quái vô hạn - kiểm tra mỗi 3 giây
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastSpawnTime >= 3000) { // 3 giây spawn 1 lần
             lastSpawnTime = currentTime;
             
+            // KIỂM tra NULL trước khi spawn để tránh crash
+            if (mapManager.getCurrentMap().getSkeletonArrayList() == null ||
+                mapManager.getCurrentMap().getMonsterArrayList() == null ||
+                mapManager.getCurrentMap().getBoomArrayList() == null) {
+                System.out.println("❌ Một hoặc nhiều ArrayList enemies là null - không thể spawn");
+                return;
+            }
+
             // Spawn 1 quái mỗi lần để tránh drop item trùng lặp
             int spawnCount = 1; // Chỉ spawn 1 quái mỗi lần
-            System.out.println("🔄 Spawn " + spawnCount + " enemy(ies)");
-            
+            System.out.println("🔄 Spawn " + spawnCount + " enemy(ies) ở map ngoài");
+
             for (int i = 0; i < spawnCount; i++) {
                 // Spawn ở vị trí random xung quanh player
                 float spawnX = player.getHitbox().centerX() + (float) (Math.random() - 0.5) * 1000;
@@ -692,26 +706,77 @@ private void checkPlayerAttack() {
 
         boolean hitWall = false;
 
-        // Kiểm tra va chạm tổng thể
-        if (HelpMethods.CanWalkHere(player.getHitbox(), deltaCameraX, deltaCameraY, mapManager.getCurrentMap())) {
-            cameraX += deltaX;
-            cameraY += deltaY;
-        } else {
-            // Kiểm tra riêng từng chiều
-            if (HelpMethods.CanWalkHereUpDown(player.getHitbox(), deltaCameraY, -cameraX, mapManager.getCurrentMap())) {
+        // PHÂN BIỆT MAP NGOÀI VÀ MAP TRONG NHÀ
+        if (isOutsideMap()) {
+            // ========== MAP NGOÀI (OUTSIDE) ==========
+            // SỬ DỤNG HÀM RIÊNG CHO MAP NGOÀI - KHÔNG CHẶN BIÊN MAP
+            if (HelpMethods.CanWalkHereOutside(player.getHitbox(), deltaCameraX, deltaCameraY, mapManager.getCurrentMap())) {
+                cameraX += deltaX;
                 cameraY += deltaY;
             } else {
-                hitWall = true;
+                // Kiểm tra va chạm với obstacles riêng từng chiều
+                if (HelpMethods.CanWalkHereUpDownOutside(player.getHitbox(), deltaCameraY, -cameraX, mapManager.getCurrentMap())) {
+                    cameraY += deltaY;
+                } else {
+                    hitWall = true;
+                }
+
+                if (HelpMethods.CanWalkHereLeftRightOutside(player.getHitbox(), deltaCameraX, -cameraY, mapManager.getCurrentMap())) {
+                    cameraX += deltaX;
+                } else {
+                    hitWall = true;
+                }
+
+                if (hitWall) playPlayerHitWall();
             }
 
-            if (HelpMethods.CanWalkHereLeftRight(player.getHitbox(), deltaCameraX, -cameraY, mapManager.getCurrentMap())) {
+            // Kiểm tra game over khi ra ngoài biên map (CHỈ Ở MAP NGOÀI)
+            checkPlayerOutOfBounds();
+
+        } else {
+            // ========== MAP TRONG NHÀ (INSIDE) ==========
+            // SỬ DỤNG HÀM CŨ - CÓ CHẶN BIÊN MAP
+            if (HelpMethods.CanWalkHere(player.getHitbox(), deltaCameraX, deltaCameraY, mapManager.getCurrentMap())) {
                 cameraX += deltaX;
+                cameraY += deltaY;
             } else {
-                hitWall = true;
-            }
+                // Kiểm tra riêng từng chiều
+                if (HelpMethods.CanWalkHereUpDown(player.getHitbox(), deltaCameraY, -cameraX, mapManager.getCurrentMap())) {
+                    cameraY += deltaY;
+                } else {
+                    hitWall = true;
+                }
 
-            // Phát âm thanh nếu chạm viền
-            if (hitWall) playPlayerHitWall();
+                if (HelpMethods.CanWalkHereLeftRight(player.getHitbox(), deltaCameraX, -cameraY, mapManager.getCurrentMap())) {
+                    cameraX += deltaX;
+                } else {
+                    hitWall = true;
+                }
+
+                if (hitWall) playPlayerHitWall();
+            }
+            // KHÔNG kiểm tra game over khi ở trong nhà
+        }
+    }
+
+    private boolean isOutsideMap() {
+        // Kiểm tra xem map hiện tại có phải là map ngoài không
+        return mapManager.getCurrentMap().getFloorType() == com.tutorial.androidgametutorial.environments.Tiles.OUTSIDE;
+    }
+    private void checkPlayerOutOfBounds() {
+        // Tính toán vị trí thế giới của người chơi
+        float playerWorldX = -cameraX + player.getHitbox().centerX();
+        float playerWorldY = -cameraY + player.getHitbox().centerY();
+
+        // Lấy kích thước map
+        float mapWidth = mapManager.getMaxWidthCurrentMap();
+        float mapHeight = mapManager.getMaxHeightCurrentMap();
+
+        // Kiểm tra nếu người chơi ra ngoài biên map
+        if (playerWorldX < 0 || playerWorldX > mapWidth ||
+            playerWorldY < 0 || playerWorldY > mapHeight) {
+            // Chuyển sang màn hình game over
+            game.setCurrentGameState(Game.GameState.DEATH_SCREEN);
         }
     }
 
@@ -915,4 +980,32 @@ private void checkPlayerAttack() {
         soundPool.play(playerHitWallSoundId, 1, 1, 1, 0, 1f);
     }
 
+    public void resetGame() {
+        // Reset camera về vị trí ban đầu (giữa map)
+        calcStartCameraValues();
+
+        // Reset player về trạng thái ban đầu
+        player.resetCharacterHealth();
+        player.resetAnimation();
+
+        // Reset movement state
+        movePlayer = false;
+        lastTouchDiff = null;
+
+        // Clear tất cả projectiles và effects
+        projectiles.clear();
+        explosionEffects.clear();
+        effectExplosions.clear();
+        sparkSkills.clear();
+
+        // Reset spawn timer về 0
+        lastSpawnTime = 0;
+
+        // KHÔI PHỤC LẠI MAP VỀ TRẠNG THÁI BAN ĐẦU - như khi vào game lần đầu
+        mapManager.resetMapToInitialState();
+
+        System.out.println("🔄 Game đã được HOÀN TOÀN reset về trạng thái ban đầu!");
+        System.out.println("📍 Camera reset về: (" + cameraX + ", " + cameraY + ")");
+        System.out.println("👹 Map đã được khôi phục về trạng thái ban đầu với quái vật gốc");
+    }
 }

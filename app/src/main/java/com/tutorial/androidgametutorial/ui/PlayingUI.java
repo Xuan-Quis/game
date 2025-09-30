@@ -84,6 +84,7 @@ public class PlayingUI {
 
         // Health
         drawHealth(c);
+        drawStatusEffects(c); // Thêm hiển thị trạng thái Speed và Armor
     }
 
     private void drawHealth(Canvas c) {
@@ -104,6 +105,61 @@ public class PlayingUI {
             } else {
                 c.drawBitmap(HealthIcons.HEART_FULL.getIcon(), x, healthIconY, null);
             }
+        }
+    }
+
+    private void drawStatusEffects(Canvas c) {
+        Player player = playing.getPlayer();
+
+        // Vị trí hiển thị status effects bên dưới thanh máu
+        int statusY = healthIconY + 80; // Dưới thanh máu 80px
+        int speedX = healthIconX; // Cùng vị trí X với thanh máu
+        int armorX = healthIconX + 200; // Cách Speed 200px
+
+        // Paint cho text
+        Paint textPaint = new Paint();
+        textPaint.setColor(Color.WHITE);
+        textPaint.setTextSize(30);
+        textPaint.setFakeBoldText(true);
+        textPaint.setAntiAlias(true);
+
+        // Paint cho background
+        Paint bgPaint = new Paint();
+        bgPaint.setColor(Color.argb(150, 0, 0, 0)); // Nền đen trong suốt
+        bgPaint.setAntiAlias(true);
+
+        // Hiển thị Speed Status
+        if (player.hasSpeedBoost()) {
+            // Vẽ background cho Speed
+            c.drawRoundRect(speedX - 10, statusY - 5, speedX + 150, statusY + 35, 10, 10, bgPaint);
+
+            // Vẽ text Speed với màu vàng
+            textPaint.setColor(Color.YELLOW);
+            c.drawText("SPEED", speedX, statusY + 25, textPaint);
+
+            // Hiển thị thời gian còn lại (nếu có)
+            long timeLeft = player.getSpeedBoostTimeLeft();
+            if (timeLeft > 0) {
+                textPaint.setTextSize(20);
+                c.drawText(timeLeft/1000 + "s", speedX + 80, statusY + 25, textPaint);
+                textPaint.setTextSize(30);
+            }
+        }
+
+        // Hiển thị Armor Status (Shield)
+        if (player.hasShield()) {
+            // Vẽ background cho Armor
+            c.drawRoundRect(armorX - 10, statusY - 5, armorX + 180, statusY + 35, 10, 10, bgPaint);
+
+            // Vẽ text Armor với màu xanh cyan
+            textPaint.setColor(Color.CYAN);
+            c.drawText("ARMOR", armorX, statusY + 25, textPaint);
+
+            // Hiển thị số lượng hits còn lại
+            textPaint.setTextSize(20);
+            textPaint.setColor(Color.WHITE);
+            c.drawText("x" + player.getShieldHits(), armorX + 90, statusY + 25, textPaint);
+            textPaint.setTextSize(30);
         }
     }
 

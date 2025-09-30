@@ -192,9 +192,11 @@ public class SparkSkill {
                         skeleton.setSkeletonInactive();
                         // Thử drop item khi skeleton chết bởi SparkSkill
                         com.tutorial.androidgametutorial.entities.items.Item droppedItem = com.tutorial.androidgametutorial.helpers.HelpMethods.tryDropItem(new android.graphics.PointF(skeleton.getHitbox().centerX(), skeleton.getHitbox().centerY()));
-                        if (droppedItem != null) {
+                        if (droppedItem != null && playing.getMapManager().getCurrentMap().getItemArrayList() != null) {
                             playing.getMapManager().getCurrentMap().getItemArrayList().add(droppedItem);
                             System.out.println("🎁 Skeleton chết bởi SparkSkill! Drop item: " + droppedItem.getItemType());
+                        } else if (droppedItem != null && playing.getMapManager().getCurrentMap().getItemArrayList() == null) {
+                            System.out.println("❌ ItemArrayList is null - không thể drop item từ SparkSkill");
                         }
                     }
                     projectile.explode();
