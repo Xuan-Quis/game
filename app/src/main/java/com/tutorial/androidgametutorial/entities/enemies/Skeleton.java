@@ -28,6 +28,7 @@ public class Skeleton extends Character {
 
     private long timerBeforeAttack, timerAttackDuration;
     private long timeToAttack = 500, timeForAttackDuration = 250;
+    private boolean hasDroppedItem = false;
 
 
     public Skeleton(PointF pos) {
@@ -227,5 +228,13 @@ public class Skeleton extends Character {
 
     public void setChasing(boolean chasing) {
         this.chasing = chasing;
+    }
+
+    public boolean hasDroppedItem() {
+        return hasDroppedItem;
+    }
+
+    public void setHasDroppedItem(boolean hasDroppedItem) {
+        this.hasDroppedItem = hasDroppedItem;
     }
 }

@@ -24,7 +24,7 @@ public class Boom extends Character {
     private float cameraX, cameraY;
     private float normalSpeed = 250f; // Chậm hơn Skeleton một chút
     private float chaseSpeed = 400f;
-    private float chaseRange = 350f;
+    private float chaseRange = 150f; // Giảm từ 350f xuống 150f
 
     // Boom attack system
     private boolean isExploding = false;
@@ -34,6 +34,7 @@ public class Boom extends Character {
     private int[] explosionFrames = {0, 1, 2, 3, 4, 5, 6}; // boom_smile đến boom_bum_6
     private boolean explosionDamageDealt = false;
     private static BoomSprites boomSprites = new BoomSprites();
+    private com.tutorial.androidgametutorial.gamestates.Playing playing;
 
     public Boom(PointF pos) {
         super(pos, GameCharacters.BOOM);
@@ -109,6 +110,12 @@ public class Boom extends Character {
         if (targetPlayer != null) {
             // Trừ 2 cục máu (200 damage)
             targetPlayer.damageCharacter(200);
+        }
+        
+        // Thêm ExplosionEffect khi Boom nổ
+        if (playing != null) {
+            playing.addExplosionEffect(new com.tutorial.androidgametutorial.effects.ExplosionEffect(new PointF(hitbox.centerX(), hitbox.centerY())));
+            playing.playBoomExplosionSound(); // Phát âm thanh nổ
         }
     }
 
@@ -282,5 +289,9 @@ public class Boom extends Character {
         } else {
             return boomSprites.getMoveSprite(faceDir);
         }
+    }
+
+    public void setPlaying(com.tutorial.androidgametutorial.gamestates.Playing playing) {
+        this.playing = playing;
     }
 }

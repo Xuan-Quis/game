@@ -13,6 +13,8 @@ import com.tutorial.androidgametutorial.entities.Player;
 import com.tutorial.androidgametutorial.entities.enemies.Boom;
 import com.tutorial.androidgametutorial.entities.enemies.Monster;
 import com.tutorial.androidgametutorial.entities.enemies.Skeleton;
+import com.tutorial.androidgametutorial.entities.items.Item;
+import com.tutorial.androidgametutorial.entities.items.Items;
 import com.tutorial.androidgametutorial.environments.Doorway;
 import com.tutorial.androidgametutorial.environments.GameMap;
 import com.tutorial.androidgametutorial.environments.Tiles;
@@ -286,5 +288,19 @@ public class HelpMethods {
         float distance = (float) Math.hypot(xDelta, yDelta);
 
         return distance < GameConstants.Sprite.SIZE * 1.5f;
+    }
+    
+    // Drop items khi giết quái
+    public static Item tryDropItem(PointF enemyPosition) {
+        double random = Math.random();
+        
+        if (random < 0.3) { // 30% cơ hội drop MEDIPACK
+            return new Item(Items.MEDIPACK, new PointF(enemyPosition.x, enemyPosition.y));
+        } else if (random < 0.6) { // 30% cơ hội drop FISH
+            return new Item(Items.FISH, new PointF(enemyPosition.x, enemyPosition.y));
+        } else {
+            // 40% cơ hội drop HP (sử dụng EMPTY_POT làm HP item)
+            return new Item(Items.EMPTY_POT, new PointF(enemyPosition.x, enemyPosition.y));
+        }
     }
 }

@@ -33,6 +33,7 @@ public class Monster extends Character {
     private long timerBeforeAttack, timerAttackDuration;
     private long timeToAttack = 600;         // delay before attack after preparing
     private long timeForAttackDuration = 300; // attack active duration
+    private boolean hasDroppedItem = false;
 
     public Monster(PointF pos) {
         super(pos, GameCharacters.MONSTER); // đổi nếu constant khác
@@ -235,5 +236,13 @@ public class Monster extends Character {
 
     public void setChasing(boolean chasing) {
         this.chasing = chasing;
+    }
+
+    public boolean hasDroppedItem() {
+        return hasDroppedItem;
+    }
+
+    public void setHasDroppedItem(boolean hasDroppedItem) {
+        this.hasDroppedItem = hasDroppedItem;
     }
 }

@@ -16,6 +16,7 @@ public abstract class Character extends Entity {
     protected boolean attacking, attackChecked;
     private RectF attackBox = null;
     private int attackDamage;
+    private long lastAttackTime = 0;
 
     private int maxHealth;
     private int currentHealth;
@@ -40,6 +41,13 @@ public abstract class Character extends Entity {
     public void damageCharacter(int damage) {
         this.currentHealth -= damage;
     }
+    
+    public void healCharacter(int healAmount) {
+        this.currentHealth += healAmount;
+        if (this.currentHealth > this.maxHealth) {
+            this.currentHealth = this.maxHealth;
+        }
+    }
 
     private int setAttackDamage() {
         return switch (gameCharType) {
@@ -58,6 +66,11 @@ public abstract class Character extends Entity {
             aniIndex++;
             if (aniIndex >= GameConstants.Animation.AMOUNT)
                 aniIndex = 0;
+        }
+        
+        // Tự động set attacking = false sau 2000ms (đủ thời gian để checkPlayerAttack)
+        if (attacking && System.currentTimeMillis() - lastAttackTime >= 2000) {
+            setAttacking(false);
         }
     }
 
@@ -172,7 +185,12 @@ public abstract class Character extends Entity {
 
     public void setAttacking(boolean attacking) {
         this.attacking = attacking;
-        if (!attacking) attackChecked = false;
+        if (attacking) {
+            lastAttackTime = System.currentTimeMillis();
+        } else {
+            attackChecked = false;
+        }
+        System.out.println("🎮 Character setAttacking: " + attacking + " (attackChecked: " + attackChecked + ")");
     }
 
     public boolean isAttacking() {

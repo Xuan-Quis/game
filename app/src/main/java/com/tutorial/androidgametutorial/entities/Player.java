@@ -30,8 +30,19 @@ public class Player extends Character {
     private long lastSparkSkillTime = 0;
     private final long sparkSkillCooldown = 1000; // 1 giây hồi chiêu
 
+    // Shield system (từ MEDIPACK)
+    private int shieldHits = 0; // Số đòn còn lại có thể đỡ
+    private long shieldStartTime = 0;
+    private final long shieldDuration = 30000; // 30 giây tồn tại
+    
+    // Speed boost system (từ FISH)
+    private float speedMultiplier = 1.0f; // Hệ số tốc độ
+    private long speedBoostStartTime = 0;
+    private final long speedBoostDuration = 5000; // 5 giây tăng tốc
+
     private static SoundPool soundPool;
     private static int skillSoundId;
+    private static int sparkSkillSoundId;
 
     static {
         AudioAttributes audioAttributes = new AudioAttributes.Builder()
@@ -45,6 +56,7 @@ public class Player extends Character {
                 .build();
 
         skillSoundId = soundPool.load(MainActivity.getGameContext(), R.raw.fast_whoosh, 1);
+        sparkSkillSoundId = soundPool.load(MainActivity.getGameContext(), R.raw.spark_voice, 1);
     }
 
     public Player() {
@@ -145,7 +157,7 @@ public class Player extends Character {
         if (!canCastSpark()) return;
         setLastSparkSkillTime();
 
-        soundPool.play(skillSoundId, 1, 1, 1, 0, 1f);
+        soundPool.play(sparkSkillSoundId, 1, 1, 1, 0, 1f);
 
         // Player hitbox đang ở screen coordinates, cần chuyển sang world coordinates
         float worldPx = getHitbox().centerX() - playing.getCameraX();
@@ -153,5 +165,75 @@ public class Player extends Character {
 
         SparkSkill sparkSkill = new SparkSkill(new PointF(worldPx, worldPy), playing);
         playing.addSparkSkill(sparkSkill);
+    }
+    
+    // Item effects
+    public void useMedipack() {
+        // Hồi 3/10 máu (30% máu)
+        int healAmount = (int) (getMaxHealth() * 0.3f);
+        healCharacter(healAmount);
+        System.out.println("❤️ MEDIPACK! Hồi máu +" + healAmount + " HP. Hiện tại: " + getCurrentHealth() + "/" + getMaxHealth());
+    }
+    
+    public void useFish() {
+        // Tăng tốc độ di chuyển
+        speedMultiplier = 2.0f; // Tăng 100% tốc độ (gấp đôi)
+        speedBoostStartTime = System.currentTimeMillis();
+        System.out.println("🐟 FISH! Tăng tốc được kích hoạt! Tốc độ tăng 100% trong 5 giây.");
+    }
+    
+    public void useEmptyPot() {
+        // Tạo khiên bảo vệ 3 đòn
+        shieldHits = 3;
+        shieldStartTime = System.currentTimeMillis();
+        System.out.println("🛡️ EMPTY_POT! Khiên bảo vệ được kích hoạt! Có thể đỡ 3 đòn.");
+    }
+    
+    // Kiểm tra và cập nhật hiệu ứng
+    public void updateEffects() {
+        long currentTime = System.currentTimeMillis();
+        
+        // Kiểm tra shield hết hạn
+        if (shieldHits > 0 && currentTime - shieldStartTime >= shieldDuration) {
+            shieldHits = 0;
+            System.out.println("Khiên bảo vệ đã hết hạn!");
+        }
+        
+        // Kiểm tra speed boost hết hạn
+        if (speedMultiplier > 1.0f && currentTime - speedBoostStartTime >= speedBoostDuration) {
+            speedMultiplier = 1.0f;
+            System.out.println("Tăng tốc đã hết hạn!");
+        }
+    }
+    
+    // Override damageCharacter để xử lý shield
+    @Override
+    public void damageCharacter(int damage) {
+        if (shieldHits > 0) {
+            // Đỡ đòn bằng khiên
+            shieldHits--;
+            System.out.println("Khiên đã đỡ đòn! Còn lại " + shieldHits + " đòn.");
+            return; // Không bị sát thương
+        }
+        
+        // Bị sát thương bình thường
+        super.damageCharacter(damage);
+    }
+    
+    // Getter methods
+    public boolean hasShield() {
+        return shieldHits > 0;
+    }
+    
+    public int getShieldHits() {
+        return shieldHits;
+    }
+    
+    public float getSpeedMultiplier() {
+        return speedMultiplier;
+    }
+    
+    public boolean hasSpeedBoost() {
+        return speedMultiplier > 1.0f;
     }
 }

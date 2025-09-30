@@ -20,7 +20,7 @@ public class EffectExplosion {
     private long duration = 2000; // 2 giây tồn tại
     private int damage = 50;
     private float range = 300f; // Tầm bắn
-    private int projectileCount = 8; // Số lượng projectile bắn ra
+    private int projectileCount = 2; // Số lượng projectile bắn ra
     private boolean active = true;
     private static EffectExplosionSprites sprites = new EffectExplosionSprites();
     private Random random = new Random();
@@ -88,6 +88,12 @@ public class EffectExplosion {
                     skeleton.damageCharacter(damage);
                     if (skeleton.getCurrentHealth() <= 0) {
                         skeleton.setSkeletonInactive();
+                        // Thử drop item khi skeleton chết bởi EffectExplosion
+                        com.tutorial.androidgametutorial.entities.items.Item droppedItem = com.tutorial.androidgametutorial.helpers.HelpMethods.tryDropItem(new PointF(skeleton.getHitbox().centerX(), skeleton.getHitbox().centerY()));
+                        if (droppedItem != null) {
+                            playing.getMapManager().getCurrentMap().getItemArrayList().add(droppedItem);
+                            System.out.println("🎁 Skeleton chết bởi EffectExplosion! Drop item: " + droppedItem.getItemType());
+                        }
                     }
                     projectile.explode();
                     break;
@@ -103,6 +109,12 @@ public class EffectExplosion {
                     monster.damageCharacter(damage);
                     if (monster.getCurrentHealth() <= 0) {
                         monster.setMonsterInactive();
+                        // Thử drop item khi monster chết bởi EffectExplosion
+                        com.tutorial.androidgametutorial.entities.items.Item droppedItem = com.tutorial.androidgametutorial.helpers.HelpMethods.tryDropItem(new PointF(monster.getHitbox().centerX(), monster.getHitbox().centerY()));
+                        if (droppedItem != null) {
+                            playing.getMapManager().getCurrentMap().getItemArrayList().add(droppedItem);
+                            System.out.println("🎁 Monster chết bởi EffectExplosion! Drop item: " + droppedItem.getItemType());
+                        }
                     }
                     projectile.explode();
                     break;
