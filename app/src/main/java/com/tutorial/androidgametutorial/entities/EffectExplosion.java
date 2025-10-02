@@ -88,6 +88,8 @@ public class EffectExplosion {
                     skeleton.damageCharacter(damage);
                     if (skeleton.getCurrentHealth() <= 0) {
                         skeleton.setSkeletonInactive();
+                        playing.enemyKilled(); // THÊM DÒNG NÀY để tăng killCount
+                        System.out.println("💀 Skeleton chết bởi EffectExplosion! Kill count tăng!");
                         // Thử drop item khi skeleton chết bởi EffectExplosion
                         com.tutorial.androidgametutorial.entities.items.Item droppedItem = com.tutorial.androidgametutorial.helpers.HelpMethods.tryDropItem(new PointF(skeleton.getHitbox().centerX(), skeleton.getHitbox().centerY()));
                         if (droppedItem != null) {
@@ -109,6 +111,8 @@ public class EffectExplosion {
                     monster.damageCharacter(damage);
                     if (monster.getCurrentHealth() <= 0) {
                         monster.setMonsterInactive();
+                        playing.enemyKilled(); // THÊM DÒNG NÀY để tăng killCount
+                        System.out.println("💀 Monster chết bởi EffectExplosion! Kill count tăng!");
                         // Thử drop item khi monster chết bởi EffectExplosion
                         com.tutorial.androidgametutorial.entities.items.Item droppedItem = com.tutorial.androidgametutorial.helpers.HelpMethods.tryDropItem(new PointF(monster.getHitbox().centerX(), monster.getHitbox().centerY()));
                         if (droppedItem != null) {
@@ -130,6 +134,8 @@ public class EffectExplosion {
                     boom.damageCharacter(damage);
                     if (boom.getCurrentHealth() <= 0) {
                         boom.setBoomInactive();
+                        playing.enemyKilled(); // THÊM DÒNG NÀY để tăng killCount
+                        System.out.println("💀 Boom chết bởi EffectExplosion! Kill count tăng!");
                     }
                     projectile.explode();
                     break;

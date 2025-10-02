@@ -319,7 +319,7 @@ private void checkPlayerAttack() {
                 // Nếu quái chết thì set inactive và drop item
                 if (s.getCurrentHealth() <= 0) {
                     s.setSkeletonInactive();
-                    killCount++; // Tăng số quái giết được
+                    enemyKilled(); // Sử dụng method thống nhất thay vì killCount++ trực tiếp
                     System.out.println("💀 Skeleton đã chết! Kill count: " + killCount);
                     // Chỉ drop item nếu chưa drop (tránh drop nhiều lần)
                     if (!s.hasDroppedItem()) {
@@ -354,7 +354,7 @@ private void checkPlayerAttack() {
 
                 if (m.getCurrentHealth() <= 0) {
                     m.setMonsterInactive();
-                    killCount++; // Tăng số quái giết được
+                    enemyKilled(); // Sử dụng method thống nhất thay vì killCount++ trực tiếp
                     System.out.println("💀 Monster đã chết! Kill count: " + killCount);
                     // Chỉ drop item nếu chưa drop (tránh drop nhiều lần)
                     if (!m.hasDroppedItem()) {
@@ -390,7 +390,7 @@ private void checkPlayerAttack() {
 
                 if (boom.getCurrentHealth() <= 0) {
                     boom.setBoomInactive();
-                    killCount++; // Tăng số quái giết được
+                    enemyKilled(); // Sử dụng method thống nhất thay vì killCount++ trực tiếp
                     System.out.println("💀 Boom đã chết! Kill count: " + killCount);
                     // Boom không drop item
                 }
@@ -926,7 +926,7 @@ private void checkPlayerAttack() {
                         explosionEffects.add(new ExplosionEffect(new PointF(s.getHitbox().centerX(), s.getHitbox().centerY())));
                         if (s.getCurrentHealth() <= 0) {
                             s.setSkeletonInactive();
-                            killCount++; // Tăng số quái giết được
+                            enemyKilled(); // Sử dụng method thống nhất thay vì killCount++ trực tiếp
                             System.out.println("💀 Skeleton chết bởi projectile! Kill count: " + killCount);
                             // Chỉ drop item nếu chưa drop (tránh drop nhiều lần)
                             if (!s.hasDroppedItem()) {
@@ -955,7 +955,7 @@ private void checkPlayerAttack() {
                         explosionEffects.add(new ExplosionEffect(new PointF(m.getHitbox().centerX(), m.getHitbox().centerY())));
                         if (m.getCurrentHealth() <= 0) {
                             m.setMonsterInactive();
-                            killCount++; // Tăng số quái giết được
+                            enemyKilled(); // Sử dụng method thống nhất thay vì killCount++ trực tiếp
                             System.out.println("💀 Monster đã chết! Kill count: " + killCount);
                             // Chỉ drop item nếu chưa drop (tránh drop nhiều lần)
                             if (!m.hasDroppedItem()) {
@@ -984,7 +984,7 @@ private void checkPlayerAttack() {
                         explosionEffects.add(new ExplosionEffect(new PointF(boom.getHitbox().centerX(), boom.getHitbox().centerY())));
                         if (boom.getCurrentHealth() <= 0) {
                             boom.setBoomInactive();
-                            killCount++; // Tăng số quái giết được
+                            enemyKilled(); // Sử dụng method thống nhất thay vì killCount++ trực tiếp
                             System.out.println("💀 Boom đã chết! Kill count: " + killCount);
                         }
                         p.deactivate();
