@@ -13,6 +13,7 @@ import android.view.SurfaceHolder;
 
 import com.tutorial.androidgametutorial.R;
 import com.tutorial.androidgametutorial.gamestates.DeathScreen;
+import com.tutorial.androidgametutorial.gamestates.LeaderboardScreen;
 import com.tutorial.androidgametutorial.gamestates.Menu;
 import com.tutorial.androidgametutorial.gamestates.Playing;
 import com.tutorial.androidgametutorial.gamestates.WinScreen;
@@ -25,6 +26,7 @@ public class Game {
     private Playing playing;
     private DeathScreen deathScreen;
     private WinScreen winScreen;
+    private LeaderboardScreen leaderboardScreen;
     private GameLoop gameLoop;
     private GameState currentGameState = GameState.MENU;
 
@@ -48,6 +50,7 @@ public class Game {
         playing = new Playing(this);
         deathScreen = new DeathScreen(this);
         winScreen = new WinScreen(this);
+        leaderboardScreen = new LeaderboardScreen(this);
 
         // Initialize MediaPlayer for background music from assets folder
         try {
@@ -102,6 +105,7 @@ public class Game {
             case PLAYING -> playing.update(delta);
             case DEATH_SCREEN -> deathScreen.update(delta);
             case WIN_SCREEN -> winScreen.update(delta);
+            case LEADERBOARD -> leaderboardScreen.update(delta);
         }
     }
 
@@ -126,6 +130,7 @@ public class Game {
             }
             case DEATH_SCREEN -> deathScreen.render(c);
             case WIN_SCREEN -> winScreen.render(c);
+            case LEADERBOARD -> leaderboardScreen.render(c);
         }
 
         holder.unlockCanvasAndPost(c);
@@ -158,6 +163,7 @@ public class Game {
             case PLAYING -> playing.touchEvents(event);
             case DEATH_SCREEN -> deathScreen.touchEvents(event);
             case WIN_SCREEN -> winScreen.touchEvents(event);
+            case LEADERBOARD -> leaderboardScreen.touchEvents(event);
         }
 
         return true;
@@ -168,7 +174,7 @@ public class Game {
     }
 
     public enum GameState {
-        MENU, PLAYING, DEATH_SCREEN, WIN_SCREEN;
+        MENU, PLAYING, DEATH_SCREEN, WIN_SCREEN, LEADERBOARD;
     }
 
     public GameState getCurrentGameState() {
@@ -193,6 +199,10 @@ public class Game {
 
     public WinScreen getWinScreen() {
         return winScreen;
+    }
+
+    public LeaderboardScreen getLeaderboardScreen() {
+        return leaderboardScreen;
     }
 
     public Context getContext() {

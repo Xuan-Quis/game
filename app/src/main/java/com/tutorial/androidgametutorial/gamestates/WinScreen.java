@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.view.MotionEvent;
 
+import com.tutorial.androidgametutorial.helpers.LeaderboardManager;
 import com.tutorial.androidgametutorial.helpers.interfaces.GameStateInterface;
 import com.tutorial.androidgametutorial.main.Game;
 import com.tutorial.androidgametutorial.ui.CustomButton;
@@ -17,20 +18,25 @@ import static com.tutorial.androidgametutorial.main.MainActivity.GAME_WIDTH;
 
 public class WinScreen extends BaseState implements GameStateInterface {
 
-    private CustomButton playAgainButton, menuButton;
+    private CustomButton playAgainButton, menuButton, leaderboardButton;
     private Paint titlePaint, statsPaint, buttonPaint;
     private int killCount = 0;
     private int bestKillCount = 0;
     private SharedPreferences sharedPrefs;
+    private LeaderboardManager leaderboardManager;
+    private boolean isNewRecord = false;
 
     public WinScreen(Game game) {
         super(game);
         initButtons();
         initPaints();
 
-        // Khởi tạo SharedPreferences để lưu kỷ lục
+        // Khởi tạo SharedPreferences để lưu kỷ lục (tương thích ngược)
         sharedPrefs = game.getContext().getSharedPreferences("GameStats", Context.MODE_PRIVATE);
         bestKillCount = sharedPrefs.getInt("bestKillCount", 0);
+
+        // Khởi tạo LeaderboardManager
+        leaderboardManager = new LeaderboardManager(game.getContext());
     }
 
     private void initButtons() {
@@ -41,6 +47,7 @@ public class WinScreen extends BaseState implements GameStateInterface {
 
         playAgainButton = new CustomButton(centerX - buttonWidth / 2, centerY + 100, buttonWidth, buttonHeight);
         menuButton = new CustomButton(centerX - buttonWidth / 2, centerY + 200, buttonWidth, buttonHeight);
+        leaderboardButton = new CustomButton(centerX - buttonWidth / 2, centerY + 300, buttonWidth, buttonHeight);
     }
 
     private void initPaints() {
@@ -71,31 +78,53 @@ public class WinScreen extends BaseState implements GameStateInterface {
         // Draw background
         c.drawColor(Color.BLACK);
 
-        // Draw victory title
+        // Draw victory title với hiệu ứng kỷ lục mới
+        if (isNewRecord) {
+            Paint newRecordPaint = new Paint();
+            newRecordPaint.setColor(Color.rgb(255, 215, 0)); // Gold color
+            newRecordPaint.setTextSize(90);
+            newRecordPaint.setFakeBoldText(true);
+            newRecordPaint.setTextAlign(Paint.Align.CENTER);
+            c.drawText("🎉 KỶ LỤC MỚI! 🎉", GAME_WIDTH / 2f, GAME_HEIGHT / 2f - 200, newRecordPaint);
+        }
+
         c.drawText("🏆 CHIẾN THẮNG! 🏆", GAME_WIDTH / 2f, GAME_HEIGHT / 2f - 150, titlePaint);
 
         // Draw stats
         c.drawText("Bạn đã sống sót 20 giây!", GAME_WIDTH / 2f, GAME_HEIGHT / 2f - 80, statsPaint);
         c.drawText("Lần này: " + killCount + " quái bị tiêu diệt", GAME_WIDTH / 2f, GAME_HEIGHT / 2f - 30, statsPaint);
 
-        // Hiển thị kỷ lục cao nhất
+        // Hiển thị kỷ lục cao nhất - sử dụng giá trị trực tiếp từ LeaderboardManager
         Paint recordPaint = new Paint();
         recordPaint.setColor(Color.YELLOW);
         recordPaint.setTextSize(35);
         recordPaint.setFakeBoldText(true);
         recordPaint.setTextAlign(Paint.Align.CENTER);
-        c.drawText("🥇 KỶ LỤC CÁ NHÂN: " + bestKillCount + " quái", GAME_WIDTH / 2f, GAME_HEIGHT / 2f + 20, recordPaint);
+
+        int bestScore = leaderboardManager.getBestScore();
+        c.drawText("🥇 KỶ LỤC CÁ NHÂN: " + bestScore + " quái", GAME_WIDTH / 2f, GAME_HEIGHT / 2f + 20, recordPaint);
+
+        // Debug info (có thể bỏ sau khi test xong)
+        Paint debugPaint = new Paint();
+        debugPaint.setColor(Color.CYAN);
+        debugPaint.setTextSize(20);
+        debugPaint.setTextAlign(Paint.Align.LEFT);
+        c.drawText("Debug: killCount=" + killCount + ", bestScore=" + bestScore, 50, 50, debugPaint);
 
         // Draw buttons
-        drawButton(c, playAgainButton, "CHƠI LẠI", buttonPaint);
-        drawButton(c, menuButton, "MENU CHÍNH", buttonPaint);
+        drawButton(c, playAgainButton, "CHƠI LẠI", Color.GREEN);
+        drawButton(c, menuButton, "MENU CHÍNH", Color.BLUE);
+        drawButton(c, leaderboardButton, "BẢNG XẾP HẠNG", Color.MAGENTA);
     }
 
-    private void drawButton(Canvas c, CustomButton button, String text, Paint paint) {
+    private void drawButton(Canvas c, CustomButton button, String text, int color) {
         RectF buttonRect = button.getHitbox();
 
         // Draw button background
-        c.drawRect(buttonRect, paint);
+        Paint bgPaint = new Paint();
+        bgPaint.setColor(color);
+        bgPaint.setStyle(Paint.Style.FILL);
+        c.drawRect(buttonRect, bgPaint);
 
         // Draw button border
         Paint borderPaint = new Paint();
@@ -126,6 +155,10 @@ public class WinScreen extends BaseState implements GameStateInterface {
             } else if (menuButton.getHitbox().contains(event.getX(), event.getY())) {
                 // Go back to main menu
                 game.setCurrentGameState(Game.GameState.MENU);
+            } else if (leaderboardButton.getHitbox().contains(event.getX(), event.getY())) {
+                // Go to leaderboard screen
+                game.getLeaderboardScreen().updateLeaderboard();
+                game.setCurrentGameState(Game.GameState.LEADERBOARD);
             }
         }
     }
@@ -133,15 +166,25 @@ public class WinScreen extends BaseState implements GameStateInterface {
     public void setKillCount(int killCount) {
         this.killCount = killCount;
 
-        // Cập nhật kỷ lục cao nhất nếu cần
+        // Debug để kiểm tra giá trị
+        System.out.println("🏆 WinScreen: Nhận killCount = " + killCount);
+
+        // Kiểm tra xem có phải kỷ lục mới không
+        isNewRecord = leaderboardManager.isNewRecord(killCount);
+
+        // Thêm điểm số mới vào leaderboard
+        leaderboardManager.addScore(killCount);
+
+        // Cập nhật kỷ lục cao nhất nếu cần (tương thích ngược)
         if (killCount > bestKillCount) {
             bestKillCount = killCount;
-            // Lưu kỷ lục mới vào SharedPreferences
             SharedPreferences.Editor editor = sharedPrefs.edit();
             editor.putInt("bestKillCount", bestKillCount);
             editor.apply();
             System.out.println("🥇 KỶ LỤC MỚI! " + bestKillCount + " quái bị tiêu diệt!");
         }
+
+        System.out.println("🏆 WinScreen: Đã lưu killCount = " + this.killCount + ", isNewRecord = " + isNewRecord);
     }
 
     public int getKillCount() {
@@ -149,6 +192,6 @@ public class WinScreen extends BaseState implements GameStateInterface {
     }
 
     public int getBestKillCount() {
-        return bestKillCount;
+        return leaderboardManager.getBestScore();
     }
 }
