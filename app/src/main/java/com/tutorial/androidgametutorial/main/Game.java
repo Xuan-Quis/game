@@ -15,6 +15,7 @@ import com.tutorial.androidgametutorial.R;
 import com.tutorial.androidgametutorial.gamestates.DeathScreen;
 import com.tutorial.androidgametutorial.gamestates.Menu;
 import com.tutorial.androidgametutorial.gamestates.Playing;
+import com.tutorial.androidgametutorial.gamestates.WinScreen;
 import com.tutorial.androidgametutorial.ui.CustomButton;
 
 public class Game {
@@ -23,6 +24,7 @@ public class Game {
     private Menu menu;
     private Playing playing;
     private DeathScreen deathScreen;
+    private WinScreen winScreen;
     private GameLoop gameLoop;
     private GameState currentGameState = GameState.MENU;
 
@@ -45,6 +47,7 @@ public class Game {
         menu = new Menu(this);
         playing = new Playing(this);
         deathScreen = new DeathScreen(this);
+        winScreen = new WinScreen(this);
 
         // Initialize MediaPlayer for background music from assets folder
         try {
@@ -98,6 +101,7 @@ public class Game {
             case MENU -> menu.update(delta);
             case PLAYING -> playing.update(delta);
             case DEATH_SCREEN -> deathScreen.update(delta);
+            case WIN_SCREEN -> winScreen.update(delta);
         }
     }
 
@@ -121,6 +125,7 @@ public class Game {
                 }
             }
             case DEATH_SCREEN -> deathScreen.render(c);
+            case WIN_SCREEN -> winScreen.render(c);
         }
 
         holder.unlockCanvasAndPost(c);
@@ -152,6 +157,7 @@ public class Game {
             case MENU -> menu.touchEvents(event);
             case PLAYING -> playing.touchEvents(event);
             case DEATH_SCREEN -> deathScreen.touchEvents(event);
+            case WIN_SCREEN -> winScreen.touchEvents(event);
         }
 
         return true;
@@ -162,7 +168,7 @@ public class Game {
     }
 
     public enum GameState {
-        MENU, PLAYING, DEATH_SCREEN;
+        MENU, PLAYING, DEATH_SCREEN, WIN_SCREEN;
     }
 
     public GameState getCurrentGameState() {
@@ -183,6 +189,10 @@ public class Game {
 
     public DeathScreen getDeathScreen() {
         return deathScreen;
+    }
+
+    public WinScreen getWinScreen() {
+        return winScreen;
     }
 
     public Context getContext() {

@@ -71,6 +71,11 @@ public class Playing extends BaseState implements GameStateInterface {
     // Spawn enemies
     private long lastSpawnTime = 0;
 
+    // Tracking game stats for victory screen
+    private long gameStartTime = 0;
+    private int killCount = 0;
+    private static final long VICTORY_TIME = 20000; // 20 seconds in milliseconds
+
     public Playing(Game game) {
         super(game);
 
@@ -80,6 +85,10 @@ public class Playing extends BaseState implements GameStateInterface {
         player = new Player();
 
         playingUI = new PlayingUI(this);
+
+        // Initialize game start time
+        gameStartTime = System.currentTimeMillis();
+        killCount = 0;
 
         redPaint = new Paint();
         redPaint.setStrokeWidth(1);
@@ -135,6 +144,9 @@ public class Playing extends BaseState implements GameStateInterface {
 
     @Override
     public void update(double delta) {
+        // Check for victory condition
+        checkVictoryCondition();
+
         buildEntityList();
         updatePlayerMove(delta);
         player.update(delta, movePlayer);
@@ -307,6 +319,8 @@ private void checkPlayerAttack() {
                 // Nếu quái chết thì set inactive và drop item
                 if (s.getCurrentHealth() <= 0) {
                     s.setSkeletonInactive();
+                    killCount++; // Tăng số quái giết được
+                    System.out.println("💀 Skeleton đã chết! Kill count: " + killCount);
                     // Chỉ drop item nếu chưa drop (tránh drop nhiều lần)
                     if (!s.hasDroppedItem()) {
                         s.setHasDroppedItem(true);
@@ -340,6 +354,8 @@ private void checkPlayerAttack() {
 
                 if (m.getCurrentHealth() <= 0) {
                     m.setMonsterInactive();
+                    killCount++; // Tăng số quái giết được
+                    System.out.println("💀 Monster đã chết! Kill count: " + killCount);
                     // Chỉ drop item nếu chưa drop (tránh drop nhiều lần)
                     if (!m.hasDroppedItem()) {
                         m.setHasDroppedItem(true);
@@ -351,6 +367,32 @@ private void checkPlayerAttack() {
                             System.out.println("❌ Monster chết nhưng không drop item");
                         }
                     }
+                }
+            }
+        }
+    }
+
+    // Check Boom (thêm logic tấn công Boom)
+    if (mapManager.getCurrentMap().getBoomArrayList() != null) {
+        System.out.println("💥 Có " + mapManager.getCurrentMap().getBoomArrayList().size() + " Boom");
+        for (Boom boom : mapManager.getCurrentMap().getBoomArrayList()) {
+            if (!boom.isActive()) continue;
+            System.out.println("🔍 Kiểm tra Boom tại: (" + boom.getHitbox().centerX() + ", " + boom.getHitbox().centerY() + ") - HP: " + boom.getCurrentHealth());
+            if (attackBoxWithoutCamera.intersects(
+                    boom.getHitbox().left,
+                    boom.getHitbox().top,
+                    boom.getHitbox().right,
+                    boom.getHitbox().bottom)) {
+
+                System.out.println("💥 HIT Boom! Damage: " + player.getDamage());
+                boom.damageCharacter(player.getDamage());
+                playSwordHit();
+
+                if (boom.getCurrentHealth() <= 0) {
+                    boom.setBoomInactive();
+                    killCount++; // Tăng số quái giết được
+                    System.out.println("💀 Boom đã chết! Kill count: " + killCount);
+                    // Boom không drop item
                 }
             }
         }
@@ -884,6 +926,8 @@ private void checkPlayerAttack() {
                         explosionEffects.add(new ExplosionEffect(new PointF(s.getHitbox().centerX(), s.getHitbox().centerY())));
                         if (s.getCurrentHealth() <= 0) {
                             s.setSkeletonInactive();
+                            killCount++; // Tăng số quái giết được
+                            System.out.println("💀 Skeleton chết bởi projectile! Kill count: " + killCount);
                             // Chỉ drop item nếu chưa drop (tránh drop nhiều lần)
                             if (!s.hasDroppedItem()) {
                                 s.setHasDroppedItem(true);
@@ -911,6 +955,8 @@ private void checkPlayerAttack() {
                         explosionEffects.add(new ExplosionEffect(new PointF(m.getHitbox().centerX(), m.getHitbox().centerY())));
                         if (m.getCurrentHealth() <= 0) {
                             m.setMonsterInactive();
+                            killCount++; // Tăng số quái giết được
+                            System.out.println("💀 Monster đã chết! Kill count: " + killCount);
                             // Chỉ drop item nếu chưa drop (tránh drop nhiều lần)
                             if (!m.hasDroppedItem()) {
                                 m.setHasDroppedItem(true);
@@ -920,6 +966,26 @@ private void checkPlayerAttack() {
                                     System.out.println("🎁 Monster chết bởi Throw Sword! Drop item: " + droppedItem.getItemType());
                                 }
                             }
+                        }
+                        p.deactivate();
+                        break;
+                    }
+                }
+            }
+
+            // check va chạm với boom
+            if (mapManager.getCurrentMap().getBoomArrayList() != null) {
+                for (Boom boom : mapManager.getCurrentMap().getBoomArrayList()) {
+                    if (!boom.isActive()) continue;
+                    if (RectF.intersects(p.getHitbox(), boom.getHitbox())) {
+                        int halfMaxHp = boom.getMaxHealth() / 2;
+                        boom.damageCharacter(halfMaxHp);
+                        // Thêm hiệu ứng nổ tại vị trí quái bị trúng
+                        explosionEffects.add(new ExplosionEffect(new PointF(boom.getHitbox().centerX(), boom.getHitbox().centerY())));
+                        if (boom.getCurrentHealth() <= 0) {
+                            boom.setBoomInactive();
+                            killCount++; // Tăng số quái giết được
+                            System.out.println("💀 Boom đã chết! Kill count: " + killCount);
                         }
                         p.deactivate();
                         break;
@@ -1001,11 +1067,32 @@ private void checkPlayerAttack() {
         // Reset spawn timer về 0
         lastSpawnTime = 0;
 
+        // Reset game stats for victory screen
+        gameStartTime = System.currentTimeMillis();
+        killCount = 0;
+
         // KHÔI PHỤC LẠI MAP VỀ TRẠNG THÁI BAN ĐẦU - như khi vào game lần đầu
         mapManager.resetMapToInitialState();
 
         System.out.println("🔄 Game đã được HOÀN TOÀN reset về trạng thái ban đầu!");
         System.out.println("📍 Camera reset về: (" + cameraX + ", " + cameraY + ")");
         System.out.println("👹 Map đã được khôi phục về trạng thái ban đầu với quái vật gốc");
+        System.out.println("⏰ Timer reset: " + gameStartTime + ", Kill count reset: " + killCount);
+    }
+
+    private void checkVictoryCondition() {
+        // Kiểm tra xem đã đủ thời gian để chiến thắng chưa
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - gameStartTime >= VICTORY_TIME) {
+            // Chuyển sang màn hình chiến thắng sau 20 giây
+            System.out.println("🏆 CHIẾN THẮNG! Đã sống sót 20 giây với " + killCount + " quái bị tiêu diệt!");
+            game.getWinScreen().setKillCount(killCount);
+            game.setCurrentGameState(Game.GameState.WIN_SCREEN);
+        }
+    }
+
+    public void enemyKilled() {
+        killCount++;
+        System.out.println("✅ Đã tiêu diệt " + killCount + " quái.");
     }
 }
