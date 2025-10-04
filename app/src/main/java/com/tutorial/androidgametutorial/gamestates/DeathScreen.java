@@ -53,8 +53,16 @@ public class DeathScreen extends BaseState implements GameStateInterface {
     }
 
     private void drawBackground(Canvas c) {
-        c.drawBitmap(GameImages.DEATH_MENU_MENUBG.getImage(),
-                menuX, menuY, null);
+        int bgWidth = GameImages.DEATH_MENU_MENUBG.getImage().getWidth();
+        int bgHeight = GameImages.DEATH_MENU_MENUBG.getImage().getHeight();
+        // Increase height by 100 pixels (adjust as needed)
+        int newHeight = bgHeight + 110;
+        c.drawBitmap(
+                GameImages.DEATH_MENU_MENUBG.getImage(),
+                null,
+                new android.graphics.Rect(menuX, menuY, menuX + bgWidth, menuY + newHeight),
+                null
+        );
     }
 
     @Override

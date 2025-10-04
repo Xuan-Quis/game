@@ -51,23 +51,13 @@ public class Menu extends BaseState implements GameStateInterface {
                 btnStart.getHitbox().top,
                 null);
 
-        // Vẽ nút Leaderboard (sử dụng cùng style với nút Start)
+        int spacing = 40;
+
         c.drawBitmap(
-                ButtonImages.MENU_START.getBtnImg(btnLeaderboard.isPushed()),
+                ButtonImages.SCORE_BUTTON.getBtnImg(btnLeaderboard.isPushed()),
                 btnLeaderboard.getHitbox().left,
-                btnLeaderboard.getHitbox().top,
+                btnLeaderboard.getHitbox().top + spacing,
                 null);
-
-        // Vẽ text "BẢNG XẾP HẠNG" lên nút leaderboard
-        Paint textPaint = new Paint();
-        textPaint.setColor(Color.BLACK);
-        textPaint.setTextSize(24);
-        textPaint.setFakeBoldText(true);
-        textPaint.setTextAlign(Paint.Align.CENTER);
-
-        float textX = btnLeaderboard.getHitbox().centerX();
-        float textY = btnLeaderboard.getHitbox().centerY() + 8;
-        c.drawText("BẢNG XẾP HẠNG", textX, textY, textPaint);
     }
 
     @Override

@@ -9,24 +9,31 @@ import com.tutorial.androidgametutorial.main.MainActivity;
 
 public enum ButtonImages implements BitmapMethods {
 
-    MENU_START(R.drawable.mainmenu_button_start, 300, 140),
-    PLAYING_MENU(R.drawable.playing_button_menu, 140, 140),
-    MENU_MENU(R.drawable.mainmenu_button_menu, 300, 140),
-    MENU_REPLAY(R.drawable.mainmenu_button_replay, 300, 140),
-    MENU_ESCAPE(R.drawable.mainmenu_button_menu, 300, 140); // Tạm thời dùng menu button, sẽ thay sau
+    MENU_START(R.drawable.mainmenu_button_start, 300, 140, true),
+    PLAYING_MENU(R.drawable.playing_button_menu, 140, 140, true),
+    MENU_MENU(R.drawable.mainmenu_button_menu, 300, 140, true),
+    MENU_REPLAY(R.drawable.mainmenu_button_replay, 300, 140, true),
+    MENU_ESCAPE(R.drawable.exit_button, 300, 140, true), // Tạm thời dùng menu button, sẽ thay sau
+    DIFFICULTY_EASY(R.drawable.easy_button, 300, 140, true), // Icon nhân vật cho độ khó dễ
+    DIFFICULTY_HARD(R.drawable.hard_button, 300, 140, true), // Icon đầu lâu cho độ khó khó
+    BACK_BUTTON(R.drawable.back_button, 300, 140, true),
+    SCORE_BUTTON(R.drawable.score_button, 300, 140, true); // Icon đầu lâu cho độ khó khó
 
     private int width, height;
     private Bitmap normal, pushed;
 
-    ButtonImages(int resID, int width, int height) {
+    ButtonImages(int resID, int width, int height, boolean isAtlas) {
         options.inScaled = false;
         this.width = width;
         this.height = height;
-
         Bitmap buttonAtlas = BitmapFactory.decodeResource(MainActivity.getGameContext().getResources(), resID, options);
-        normal = Bitmap.createBitmap(buttonAtlas, 0, 0, width, height);
-        pushed = Bitmap.createBitmap(buttonAtlas, width, 0, width, height);
-
+        if (isAtlas && buttonAtlas.getWidth() >= width * 2) {
+            normal = Bitmap.createBitmap(buttonAtlas, 0, 0, width, height);
+            pushed = Bitmap.createBitmap(buttonAtlas, width, 0, width, height);
+        } else {
+            normal = Bitmap.createScaledBitmap(buttonAtlas, width, height, true);
+            pushed = normal;
+        }
     }
 
     public int getWidth() {

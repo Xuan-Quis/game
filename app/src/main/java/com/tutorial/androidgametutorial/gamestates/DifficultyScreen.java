@@ -19,20 +19,20 @@ public class DifficultyScreen extends BaseState implements GameStateInterface {
     private int menuX = MainActivity.GAME_WIDTH / 6;
     private int menuY = 200;
 
-    private int btnEasyX = menuX + GameImages.MAINMENU_MENUBG.getImage().getWidth() / 2 - ButtonImages.MENU_START.getWidth() / 2;
-    private int btnEasyY = menuY + 80;
+    private int btnEasyX = menuX + GameImages.MAINMENU_MENUBG.getImage().getWidth() / 2 - ButtonImages.DIFFICULTY_EASY.getWidth() / 2;
+    private int btnEasyY = menuY + 60;
 
-    private int btnHardX = btnEasyX;
-    private int btnHardY = btnEasyY + 100;
+    private int btnHardX = menuX + GameImages.MAINMENU_MENUBG.getImage().getWidth() / 2 - ButtonImages.DIFFICULTY_HARD.getWidth() / 2;
+    private int btnHardY = btnEasyY + ButtonImages.DIFFICULTY_EASY.getHeight() + 20;
 
-    private int btnBackX = btnEasyX;
-    private int btnBackY = btnHardY + 100;
+    private int btnBackX = menuX + GameImages.MAINMENU_MENUBG.getImage().getWidth() / 2 - ButtonImages.BACK_BUTTON.getWidth() / 2;
+    private int btnBackY = btnHardY + 160;
 
     public DifficultyScreen(Game game) {
         super(game);
-        btnEasy = new CustomButton(btnEasyX, btnEasyY, ButtonImages.MENU_START.getWidth(), ButtonImages.MENU_START.getHeight());
-        btnHard = new CustomButton(btnHardX, btnHardY, ButtonImages.MENU_START.getWidth(), ButtonImages.MENU_START.getHeight());
-        btnBack = new CustomButton(btnBackX, btnBackY, ButtonImages.MENU_START.getWidth(), ButtonImages.MENU_START.getHeight());
+        btnEasy = new CustomButton(btnEasyX, btnEasyY, ButtonImages.DIFFICULTY_EASY.getWidth(), ButtonImages.DIFFICULTY_EASY.getHeight());
+        btnHard = new CustomButton(btnHardX, btnHardY, ButtonImages.DIFFICULTY_HARD.getWidth(), ButtonImages.DIFFICULTY_HARD.getHeight());
+        btnBack = new CustomButton(btnBackX, btnBackY, ButtonImages.BACK_BUTTON.getWidth(), ButtonImages.BACK_BUTTON.getHeight());
     }
 
     @Override
@@ -60,48 +60,27 @@ public class DifficultyScreen extends BaseState implements GameStateInterface {
         float titleY = menuY + 40;
         c.drawText("CHỌN ĐỘ KHÓ", titleX, titleY, titlePaint);
 
-        // Vẽ nút Easy
+        // Vẽ nút Easy (icon character)
         c.drawBitmap(
-                ButtonImages.MENU_START.getBtnImg(btnEasy.isPushed()),
+                ButtonImages.DIFFICULTY_EASY.getBtnImg(btnEasy.isPushed()),
                 btnEasy.getHitbox().left,
                 btnEasy.getHitbox().top,
                 null);
 
-        // Vẽ text "DỄ" lên nút easy
-        Paint textPaint = new Paint();
-        textPaint.setColor(Color.BLACK);
-        textPaint.setTextSize(28);
-        textPaint.setFakeBoldText(true);
-        textPaint.setTextAlign(Paint.Align.CENTER);
-
-        float easyTextX = btnEasy.getHitbox().centerX();
-        float easyTextY = btnEasy.getHitbox().centerY() + 10;
-        c.drawText("DỄ", easyTextX, easyTextY, textPaint);
-
-        // Vẽ nút Hard
+        // Vẽ nút Hard (icon skull)
         c.drawBitmap(
-                ButtonImages.MENU_START.getBtnImg(btnHard.isPushed()),
+                ButtonImages.DIFFICULTY_HARD.getBtnImg(btnHard.isPushed()),
                 btnHard.getHitbox().left,
                 btnHard.getHitbox().top,
                 null);
 
-        // Vẽ text "KHÓ" lên nút hard
-        float hardTextX = btnHard.getHitbox().centerX();
-        float hardTextY = btnHard.getHitbox().centerY() + 10;
-        c.drawText("KHÓ", hardTextX, hardTextY, textPaint);
-
         // Vẽ nút Back
         c.drawBitmap(
-                ButtonImages.MENU_START.getBtnImg(btnBack.isPushed()),
+                ButtonImages.BACK_BUTTON.getBtnImg(btnBack.isPushed()),
                 btnBack.getHitbox().left,
                 btnBack.getHitbox().top,
                 null);
 
-        // Vẽ text "QUAY LẠI" lên nút back
-        textPaint.setTextSize(20);
-        float backTextX = btnBack.getHitbox().centerX();
-        float backTextY = btnBack.getHitbox().centerY() + 8;
-        c.drawText("QUAY LẠI", backTextX, backTextY, textPaint);
 
         // Vẽ mô tả độ khó
         Paint descPaint = new Paint();
