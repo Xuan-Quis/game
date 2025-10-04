@@ -80,9 +80,8 @@ public class Menu extends BaseState implements GameStateInterface {
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             if (isIn(event, btnStart)) {
                 if (btnStart.isPushed()) {
-                    // Reset game về trạng thái ban đầu trước khi start
-                    game.getPlaying().resetGame();
-                    game.setCurrentGameState(Game.GameState.PLAYING);
+                    // Chuyển đến màn hình chọn độ khó thay vì vào game trực tiếp
+                    game.setCurrentGameState(Game.GameState.DIFFICULTY);
                 }
             } else if (isIn(event, btnLeaderboard)) {
                 if (btnLeaderboard.isPushed()) {

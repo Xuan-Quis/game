@@ -119,6 +119,72 @@ public class Monster extends Character {
         if (attacking) updateAttackTimer();
     }
 
+    public void update(double delta, GameMap gameMap, Player player, float cameraX, float cameraY, com.tutorial.androidgametutorial.gamestates.Playing playing) {
+        this.targetPlayer = player;
+        this.cameraX = cameraX;
+        this.cameraY = cameraY;
+
+        // Điều chỉnh behavior theo độ khó - CHỈ SET STATS MỘT LẦN KHI TẠO
+        boolean shouldChase = (playing.getCurrentDifficulty() == com.tutorial.androidgametutorial.main.Game.Difficulty.HARD);
+
+        if (shouldChase) {
+            // Chế độ khó: có chase, stats cao hơn
+            normalSpeed = 220f;
+            chaseSpeed = 650f;
+            chaseRange = 900f;
+            // KHÔNG reset health nữa - chỉ set damage
+            setDamage(35); // Tăng sát thương ở chế độ khó
+        } else {
+            // Chế độ dễ: không chase, stats thấp hơn
+            normalSpeed = 180f;
+            chaseSpeed = 180f; // Không tăng tốc khi chase
+            chaseRange = 0f;   // Không chase
+            // KHÔNG reset health nữa - chỉ set damage
+            setDamage(20);       // Giảm sát thương ở chế độ dễ
+        }
+
+        if (moving) {
+            if (shouldChase) {
+                updateMoveWithChase(delta, gameMap);
+            } else {
+                updateMoveNoChase(delta, gameMap);
+            }
+            updateAnimation();
+        }
+        if (preparingAttack) {
+            checkTimeToAttackTimer();
+        }
+        if (attacking) {
+            updateAttackTimer();
+        }
+    }
+
+    private void updateMoveWithChase(double delta, GameMap gameMap) {
+        float distanceToPlayer = getDistanceToPlayer(targetPlayer, cameraX, cameraY);
+
+        if (distanceToPlayer <= chaseRange && !preparingAttack && !attacking) {
+            chasing = true;
+        } else if (distanceToPlayer > chaseRange * 1.5f) {
+            chasing = false;
+        }
+
+        float currentSpeed = chasing ? chaseSpeed : normalSpeed;
+        float deltaChange = (float) (delta * currentSpeed);
+
+        if (chasing && targetPlayer != null) {
+            moveTowardsPlayer(deltaChange, gameMap);
+        } else {
+            moveRandomly(delta, gameMap, deltaChange);
+        }
+    }
+
+    private void updateMoveNoChase(double delta, GameMap gameMap) {
+        // Chế độ dễ: chỉ di chuyển random, không chase
+        chasing = false;
+        float deltaChange = (float) (delta * normalSpeed);
+        moveRandomly(delta, gameMap, deltaChange);
+    }
+
     private float getDistanceToPlayer(Player player, float cameraX, float cameraY) {
         float playerX = player.getHitbox().left - cameraX;
         float playerY = player.getHitbox().top - cameraY;

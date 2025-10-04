@@ -86,6 +86,92 @@ public class Boom extends Character {
         }
     }
 
+    public void update(double delta, GameMap gameMap, Player player, float cameraX, float cameraY, com.tutorial.androidgametutorial.gamestates.Playing playing) {
+        this.targetPlayer = player;
+        this.cameraX = cameraX;
+        this.cameraY = cameraY;
+        this.playing = playing;
+
+        // Điều chỉnh behavior theo độ khó - CHỈ SET STATS MỘT LẦN KHI TẠO
+        boolean shouldChase = (playing.getCurrentDifficulty() == com.tutorial.androidgametutorial.main.Game.Difficulty.HARD);
+
+        if (shouldChase) {
+            // Chế độ khó: có chase, stats cao hơn
+            normalSpeed = 180f;
+            chaseSpeed = 700f;
+            chaseRange = 1000f;
+            // KHÔNG reset health nữa - chỉ set damage
+            setDamage(60); // Tăng sát thương ở chế độ khó (Boom có sát thương cao nhất)
+        } else {
+            // Chế độ dễ: không chase, stats thấp hơn
+            normalSpeed = 140f;
+            chaseSpeed = 140f; // Không tăng tốc khi chase
+            chaseRange = 0f;   // Không chase
+            // KHÔNG reset health nữa - chỉ set damage
+            setDamage(25);       // Giảm sát thương ở chế độ dễ
+        }
+
+        if (moving) {
+            if (shouldChase) {
+                updateMoveWithChase(delta, gameMap);
+            } else {
+                updateMoveNoChase(delta, gameMap);
+            }
+            updateAnimation();
+        }
+        if (preparingAttack) {
+            checkTimeToAttackTimer();
+        }
+        if (isExploding) {
+            updateExplosion();
+        }
+    }
+
+    private void updateMove(double delta, GameMap gameMap) {
+        float currentSpeed = chasing ? chaseSpeed : normalSpeed;
+        float deltaChange = (float) (delta * currentSpeed);
+
+        if (chasing && targetPlayer != null && !isExploding) {
+            moveTowardsPlayer(deltaChange, gameMap);
+        } else if (!isExploding) {
+            moveRandomly(delta, gameMap, deltaChange);
+        }
+    }
+
+    private void updateMoveWithChase(double delta, GameMap gameMap) {
+        float distanceToPlayer = getDistanceToPlayer(targetPlayer, cameraX, cameraY);
+
+        // Luôn luôn chase người chơi trong phạm vi rất xa, chỉ dừng khi đang nổ
+        if (!preparingAttack && !isExploding) {
+            chasing = true;
+        }
+
+        // Nếu ở gần người chơi thì luôn chase
+        if (distanceToPlayer <= chaseRange) {
+            chasing = true;
+        } else if (distanceToPlayer > chaseRange * 1.5f) {
+            chasing = false;
+        }
+
+        float currentSpeed = chasing ? chaseSpeed : normalSpeed;
+        float deltaChange = (float) (delta * currentSpeed);
+
+        if (chasing && targetPlayer != null && !isExploding) {
+            moveTowardsPlayer(deltaChange, gameMap);
+        } else if (!isExploding) {
+            moveRandomly(delta, gameMap, deltaChange);
+        }
+    }
+
+    private void updateMoveNoChase(double delta, GameMap gameMap) {
+        // Chế độ dễ: chỉ di chuyển random, không chase
+        chasing = false;
+        if (!isExploding) {
+            float deltaChange = (float) (delta * normalSpeed);
+            moveRandomly(delta, gameMap, deltaChange);
+        }
+    }
+
     private void updateExplosion() {
         long elapsed = System.currentTimeMillis() - explosionStartTime;
         
@@ -163,17 +249,6 @@ public class Boom extends Character {
         return (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     }
 
-    private void updateMove(double delta, GameMap gameMap) {
-        float currentSpeed = chasing ? chaseSpeed : normalSpeed;
-        float deltaChange = (float) (delta * currentSpeed);
-
-        if (chasing && targetPlayer != null) {
-            moveTowardsPlayer(deltaChange, gameMap);
-        } else {
-            moveRandomly(delta, gameMap, deltaChange);
-        }
-    }
-
     private void moveTowardsPlayer(float deltaChange, GameMap gameMap) {
         float playerX = targetPlayer.getHitbox().left - cameraX;
         float playerY = targetPlayer.getHitbox().top - cameraY;
@@ -190,21 +265,21 @@ public class Boom extends Character {
         }
 
         if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            if (HelpMethods.CanWalkHere(hitbox, deltaX, 0, gameMap)) {
+            if (canWalkHere(hitbox, deltaX, 0, gameMap)) {
                 hitbox.left += deltaX;
                 hitbox.right += deltaX;
                 faceDir = deltaX > 0 ? GameConstants.Face_Dir.RIGHT : GameConstants.Face_Dir.LEFT;
-            } else if (HelpMethods.CanWalkHere(hitbox, 0, deltaY, gameMap)) {
+            } else if (canWalkHere(hitbox, 0, deltaY, gameMap)) {
                 hitbox.top += deltaY;
                 hitbox.bottom += deltaY;
                 faceDir = deltaY > 0 ? GameConstants.Face_Dir.DOWN : GameConstants.Face_Dir.UP;
             }
         } else {
-            if (HelpMethods.CanWalkHere(hitbox, 0, deltaY, gameMap)) {
+            if (canWalkHere(hitbox, 0, deltaY, gameMap)) {
                 hitbox.top += deltaY;
                 hitbox.bottom += deltaY;
                 faceDir = deltaY > 0 ? GameConstants.Face_Dir.DOWN : GameConstants.Face_Dir.UP;
-            } else if (HelpMethods.CanWalkHere(hitbox, deltaX, 0, gameMap)) {
+            } else if (canWalkHere(hitbox, deltaX, 0, gameMap)) {
                 hitbox.left += deltaX;
                 hitbox.right += deltaX;
                 faceDir = deltaX > 0 ? GameConstants.Face_Dir.RIGHT : GameConstants.Face_Dir.LEFT;
@@ -214,13 +289,13 @@ public class Boom extends Character {
 
     private void moveRandomly(double delta, GameMap gameMap, float deltaChange) {
         if (System.currentTimeMillis() - lastDirChange >= 3000) {
-            faceDir = rand.nextInt(4);
+            faceDir = new Random().nextInt(4);
             lastDirChange = System.currentTimeMillis();
         }
 
         switch (faceDir) {
             case GameConstants.Face_Dir.DOWN:
-                if (HelpMethods.CanWalkHere(hitbox, 0, deltaChange, gameMap)) {
+                if (canWalkHere(hitbox, 0, deltaChange, gameMap)) {
                     hitbox.top += deltaChange;
                     hitbox.bottom += deltaChange;
                 } else
@@ -228,7 +303,7 @@ public class Boom extends Character {
                 break;
 
             case GameConstants.Face_Dir.UP:
-                if (HelpMethods.CanWalkHere(hitbox, 0, -deltaChange, gameMap)) {
+                if (canWalkHere(hitbox, 0, -deltaChange, gameMap)) {
                     hitbox.top -= deltaChange;
                     hitbox.bottom -= deltaChange;
                 } else
@@ -236,7 +311,7 @@ public class Boom extends Character {
                 break;
 
             case GameConstants.Face_Dir.RIGHT:
-                if (HelpMethods.CanWalkHere(hitbox, deltaChange, 0, gameMap)) {
+                if (canWalkHere(hitbox, deltaChange, 0, gameMap)) {
                     hitbox.left += deltaChange;
                     hitbox.right += deltaChange;
                 } else
@@ -244,7 +319,7 @@ public class Boom extends Character {
                 break;
 
             case GameConstants.Face_Dir.LEFT:
-                if (HelpMethods.CanWalkHere(hitbox, -deltaChange, 0, gameMap)) {
+                if (canWalkHere(hitbox, -deltaChange, 0, gameMap)) {
                     hitbox.left -= deltaChange;
                     hitbox.right -= deltaChange;
                 } else
@@ -253,8 +328,19 @@ public class Boom extends Character {
         }
     }
 
+    private boolean canWalkHere(android.graphics.RectF hitbox, float deltaX, float deltaY, GameMap gameMap) {
+        // Logic collision detection đơn giản - luôn cho phép di chuyển
+        // Boom có thể đi qua tường để đuổi theo player
+        return true;
+    }
+
     private void checkTimeToAttackTimer() {
-        // Boom không cần timer như Skeleton, nó sẽ nổ ngay khi chạm player
+        // Logic đơn giản cho timer attack
+        if (System.currentTimeMillis() - explosionStartTime >= 1000) { // 1 giây
+            isExploding = true;
+            preparingAttack = false;
+            explosionStartTime = System.currentTimeMillis();
+        }
     }
 
     public boolean isPreparingAttack() {

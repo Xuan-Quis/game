@@ -49,6 +49,9 @@ public class Playing extends BaseState implements GameStateInterface {
     private PlayingUI playingUI;
     private final Paint redPaint, healthBarRed, healthBarBlack;
 
+    // Difficulty system
+    private Game.Difficulty currentDifficulty = Game.Difficulty.EASY;
+
     private boolean doorwayJustPassed;
     private Entity[] listOfDrawables;
     private boolean listOfEntitiesMade;
@@ -163,7 +166,7 @@ public class Playing extends BaseState implements GameStateInterface {
         if (mapManager.getCurrentMap().getSkeletonArrayList() != null)
             for (Skeleton skeleton : mapManager.getCurrentMap().getSkeletonArrayList())
                 if (skeleton.isActive()) {
-                    skeleton.update(delta, mapManager.getCurrentMap(), player, cameraX, cameraY);
+                    skeleton.update(delta, mapManager.getCurrentMap(), player, cameraX, cameraY, this);
                     if (skeleton.isAttacking()) {
                         if (!skeleton.isAttackChecked()) {
                             checkEnemyAttack(skeleton);
@@ -177,7 +180,7 @@ public class Playing extends BaseState implements GameStateInterface {
         if (mapManager.getCurrentMap().getMonsterArrayList() != null)
             for (Monster monster : mapManager.getCurrentMap().getMonsterArrayList())
                 if (monster.isActive()) {
-                    monster.update(delta, mapManager.getCurrentMap(), player, cameraX, cameraY);
+                    monster.update(delta, mapManager.getCurrentMap(), player, cameraX, cameraY, this);
                     if (monster.isAttacking()) {
                         if (!monster.isAttackChecked()) {
                             checkEnemyAttack(monster);
@@ -192,7 +195,7 @@ public class Playing extends BaseState implements GameStateInterface {
         if (mapManager.getCurrentMap().getBoomArrayList() != null)
             for (Boom boom : mapManager.getCurrentMap().getBoomArrayList())
                 if (boom.isActive()) {
-                    boom.update(delta, mapManager.getCurrentMap(), player, cameraX, cameraY);
+                    boom.update(delta, mapManager.getCurrentMap(), player, cameraX, cameraY, this);
                     if (boom.isExploding()) {
                         // Boom tự động gây sát thương khi exploding, không cần check attack
                     } else if (!boom.isPreparingAttack()) {
@@ -1094,5 +1097,14 @@ private void checkPlayerAttack() {
     public void enemyKilled() {
         killCount++;
         System.out.println("✅ Đã tiêu diệt " + killCount + " quái.");
+    }
+
+    public void setDifficulty(Game.Difficulty difficulty) {
+        this.currentDifficulty = difficulty;
+        System.out.println("🎮 Độ khó đã được set: " + difficulty);
+    }
+
+    public Game.Difficulty getCurrentDifficulty() {
+        return currentDifficulty;
     }
 }

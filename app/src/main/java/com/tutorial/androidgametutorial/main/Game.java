@@ -13,6 +13,7 @@ import android.view.SurfaceHolder;
 
 import com.tutorial.androidgametutorial.R;
 import com.tutorial.androidgametutorial.gamestates.DeathScreen;
+import com.tutorial.androidgametutorial.gamestates.DifficultyScreen;
 import com.tutorial.androidgametutorial.gamestates.LeaderboardScreen;
 import com.tutorial.androidgametutorial.gamestates.Menu;
 import com.tutorial.androidgametutorial.gamestates.Playing;
@@ -27,6 +28,7 @@ public class Game {
     private DeathScreen deathScreen;
     private WinScreen winScreen;
     private LeaderboardScreen leaderboardScreen;
+    private DifficultyScreen difficultyScreen;
     private GameLoop gameLoop;
     private GameState currentGameState = GameState.MENU;
 
@@ -34,6 +36,9 @@ public class Game {
     private MediaPlayer backgroundMusic;
     private CustomButton toggleMusicButton, toggleSwordSoundButton;
     private boolean isMusicOn = true, isSwordSoundOn = true;
+
+    // Difficulty system
+    private Difficulty currentDifficulty = Difficulty.EASY;
 
     // Update toggle buttons to use images for music and sound
     private Bitmap musicIcon, soundIcon;
@@ -51,6 +56,7 @@ public class Game {
         deathScreen = new DeathScreen(this);
         winScreen = new WinScreen(this);
         leaderboardScreen = new LeaderboardScreen(this);
+        difficultyScreen = new DifficultyScreen(this);
 
         // Initialize MediaPlayer for background music from assets folder
         try {
@@ -106,6 +112,7 @@ public class Game {
             case DEATH_SCREEN -> deathScreen.update(delta);
             case WIN_SCREEN -> winScreen.update(delta);
             case LEADERBOARD -> leaderboardScreen.update(delta);
+            case DIFFICULTY -> difficultyScreen.update(delta);
         }
     }
 
@@ -131,6 +138,7 @@ public class Game {
             case DEATH_SCREEN -> deathScreen.render(c);
             case WIN_SCREEN -> winScreen.render(c);
             case LEADERBOARD -> leaderboardScreen.render(c);
+            case DIFFICULTY -> difficultyScreen.render(c);
         }
 
         holder.unlockCanvasAndPost(c);
@@ -164,6 +172,7 @@ public class Game {
             case DEATH_SCREEN -> deathScreen.touchEvents(event);
             case WIN_SCREEN -> winScreen.touchEvents(event);
             case LEADERBOARD -> leaderboardScreen.touchEvents(event);
+            case DIFFICULTY -> difficultyScreen.touchEvents(event);
         }
 
         return true;
@@ -174,7 +183,27 @@ public class Game {
     }
 
     public enum GameState {
-        MENU, PLAYING, DEATH_SCREEN, WIN_SCREEN, LEADERBOARD;
+        MENU, PLAYING, DEATH_SCREEN, WIN_SCREEN, LEADERBOARD, DIFFICULTY;
+    }
+
+    public enum Difficulty {
+        EASY, HARD;
+    }
+
+    public Difficulty getCurrentDifficulty() {
+        return currentDifficulty;
+    }
+
+    public void setDifficulty(Difficulty difficulty) {
+        this.currentDifficulty = difficulty;
+        // Pass the difficulty setting to Playing class
+        playing.setDifficulty(difficulty);
+    }
+
+    public void setCurrentDifficulty(Difficulty currentDifficulty) {
+        this.currentDifficulty = currentDifficulty;
+        // Pass the difficulty setting to Playing class
+        playing.setDifficulty(currentDifficulty);
     }
 
     public GameState getCurrentGameState() {
@@ -203,6 +232,10 @@ public class Game {
 
     public LeaderboardScreen getLeaderboardScreen() {
         return leaderboardScreen;
+    }
+
+    public DifficultyScreen getDifficultyScreen() {
+        return difficultyScreen;
     }
 
     public Context getContext() {

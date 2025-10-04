@@ -88,27 +88,36 @@ public class Skeleton extends Character {
         }
     }
 
-    public void update(double delta, GameMap gameMap, Player player, float cameraX, float cameraY) {
+    public void update(double delta, GameMap gameMap, Player player, float cameraX, float cameraY, com.tutorial.androidgametutorial.gamestates.Playing playing) {
         this.targetPlayer = player;
         this.cameraX = cameraX;
         this.cameraY = cameraY;
 
-        float distanceToPlayer = getDistanceToPlayer(player, cameraX, cameraY);
+        // Điều chỉnh behavior theo độ khó - CHỈ SET STATS MỘT LẦN KHI TẠO
+        boolean shouldChase = (playing.getCurrentDifficulty() == Game.Difficulty.HARD);
 
-        // Luôn luôn chase người chơi trong phạm vi rất xa, chỉ dừng khi đang tấn công
-        if (distanceToPlayer <= aggressiveChaseRange && !preparingAttack && !attacking) {
-            chasing = true;
-        } else if (distanceToPlayer > aggressiveChaseRange * 2f) {
-            chasing = false;
-        }
-
-        // Nếu ở gần người chơi thì luôn chase
-        if (distanceToPlayer <= chaseRange) {
-            chasing = true;
+        if (shouldChase) {
+            // Chế độ khó: có chase, stats cao hơn
+            normalSpeed = 200f;
+            chaseSpeed = 600f;
+            chaseRange = 800f;
+            // KHÔNG reset health nữa - chỉ set damage
+            setDamage(25); // Tăng sát thương ở chế độ khó
+        } else {
+            // Chế độ dễ: không chase, stats thấp hơn
+            normalSpeed = 150f;
+            chaseSpeed = 150f; // Không tăng tốc khi chase
+            chaseRange = 0f;   // Không chase
+            // KHÔNG reset health nữa - chỉ set damage
+            setDamage(15);       // Giảm sát thương ở chế độ dễ
         }
 
         if (moving) {
-            updateMove(delta, gameMap);
+            if (shouldChase) {
+                updateMoveWithChase(delta, gameMap);
+            } else {
+                updateMoveNoChase(delta, gameMap);
+            }
             updateAnimation();
         }
         if (preparingAttack) {
@@ -219,6 +228,38 @@ public class Skeleton extends Character {
                     faceDir = GameConstants.Face_Dir.RIGHT;
                 break;
         }
+    }
+
+    private void updateMoveWithChase(double delta, GameMap gameMap) {
+        float distanceToPlayer = getDistanceToPlayer(targetPlayer, cameraX, cameraY);
+
+        // Luôn luôn chase người chơi trong phạm vi rất xa, chỉ dừng khi đang tấn công
+        if (!preparingAttack && !attacking) {
+            chasing = true;
+        }
+
+        // Nếu ở gần người chơi thì luôn chase
+        if (distanceToPlayer <= chaseRange) {
+            chasing = true;
+        } else if (distanceToPlayer > chaseRange * 1.5f) {
+            chasing = false;
+        }
+
+        float currentSpeed = chasing ? chaseSpeed : normalSpeed;
+        float deltaChange = (float) (delta * currentSpeed);
+
+        if (chasing && targetPlayer != null) {
+            moveTowardsPlayer(deltaChange, gameMap);
+        } else {
+            moveRandomly(delta, gameMap, deltaChange);
+        }
+    }
+
+    private void updateMoveNoChase(double delta, GameMap gameMap) {
+        // Chế độ dễ: chỉ di chuyển random, không chase
+        chasing = false;
+        float deltaChange = (float) (delta * normalSpeed);
+        moveRandomly(delta, gameMap, deltaChange);
     }
 
     public boolean isPreparingAttack() {

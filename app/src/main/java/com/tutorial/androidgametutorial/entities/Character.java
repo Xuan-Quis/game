@@ -209,6 +209,10 @@ public abstract class Character extends Entity {
         return attackDamage;
     }
 
+    public void setDamage(int damage) {
+        this.attackDamage = damage;
+    }
+
     public int getMaxHealth() {
         return maxHealth;
     }
@@ -217,4 +221,3 @@ public abstract class Character extends Entity {
         return currentHealth;
     }
 }
-
