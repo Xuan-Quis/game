@@ -537,8 +537,6 @@ public class Playing extends BaseState implements GameStateInterface {
         drawSparkSkills(c);
         // Vẽ Items
         drawItems(c);
-        // Vẽ Shield effect
-        drawShieldEffect(c);
     }
 
     private void drawProjectiles(Canvas c) {
@@ -662,48 +660,6 @@ public class Playing extends BaseState implements GameStateInterface {
                     item.render(c, cameraX, cameraY);
                 }
             }
-        }
-    }
-
-    private void drawShieldEffect(Canvas c) {
-        float centerX = player.getHitbox().centerX() + cameraX;
-        float centerY = player.getHitbox().centerY() + cameraY;
-        float radius = player.getHitbox().width() / 2 + 20; // Vòng tròn lớn hơn player một chút
-
-        // Vẽ shield effect
-        if (player.hasShield()) {
-            // Vẽ vòng tròn xanh quanh player
-            Paint shieldPaint = new Paint();
-            shieldPaint.setColor(Color.CYAN);
-            shieldPaint.setStyle(Paint.Style.STROKE);
-            shieldPaint.setStrokeWidth(8);
-
-            c.drawCircle(centerX, centerY, radius, shieldPaint);
-
-            // Vẽ số đòn còn lại
-            Paint textPaint = new Paint();
-            textPaint.setColor(Color.WHITE);
-            textPaint.setTextSize(30);
-            textPaint.setFakeBoldText(true);
-            c.drawText("" + player.getShieldHits(), centerX - 10, centerY + 10, textPaint);
-        }
-
-        // Vẽ speed boost effect
-        if (player.hasSpeedBoost()) {
-            // Vẽ vòng tròn vàng cho speed boost
-            Paint speedPaint = new Paint();
-            speedPaint.setColor(Color.YELLOW);
-            speedPaint.setStyle(Paint.Style.STROKE);
-            speedPaint.setStrokeWidth(6);
-
-            c.drawCircle(centerX, centerY, radius + 15, speedPaint);
-
-            // Vẽ text "SPEED"
-            Paint speedTextPaint = new Paint();
-            speedTextPaint.setColor(Color.YELLOW);
-            speedTextPaint.setTextSize(20);
-            speedTextPaint.setFakeBoldText(true);
-            c.drawText("SPEED", centerX - 25, centerY - 30, speedTextPaint);
         }
     }
 
