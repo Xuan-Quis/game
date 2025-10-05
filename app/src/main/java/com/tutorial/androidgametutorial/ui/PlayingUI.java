@@ -1,5 +1,6 @@
 package com.tutorial.androidgametutorial.ui;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -59,35 +60,39 @@ public class PlayingUI {
     }
 
     public void draw(Canvas c) {
-        drawUI(c);
+        drawJoystick(c);
+        drawAttackBtn(c);
+        drawSkillBtn(c);
+        drawSparkSkillBtn(c);
+        drawMenuButton(c); // Fixed: use custom draw method instead of btnMenu.draw(c)
+        drawHealthBar(c);
+        drawStatusEffects(c);
+        drawMapLevel(c); // Add map level indicator
     }
 
-    private void drawUI(Canvas c) {
-        // Joystick
+    private void drawJoystick(Canvas c) {
         c.drawCircle(joystickCenterPos.x, joystickCenterPos.y, joystickRadius, circlePaint);
-
-        // Attack
-        c.drawCircle(attackBtnCenterPos.x, attackBtnCenterPos.y, attackBtnRadius, circlePaint);
-
-        // Skill
-        c.drawCircle(skillBtnCenterPos.x, skillBtnCenterPos.y, skillBtnRadius, circlePaint);
-
-        // Spark Skill
-        c.drawCircle(sparkSkillBtnCenterPos.x, sparkSkillBtnCenterPos.y, sparkSkillBtnRadius, circlePaint);
-
-        // Menu
-        c.drawBitmap(
-                ButtonImages.PLAYING_MENU.getBtnImg(btnMenu.isPushed(btnMenu.getPointerId())),
-                btnMenu.getHitbox().left,
-                btnMenu.getHitbox().top,
-                null);
-
-        // Health
-        drawHealth(c);
-        drawStatusEffects(c); // Thêm hiển thị trạng thái Speed và Armor
     }
 
-    private void drawHealth(Canvas c) {
+    private void drawAttackBtn(Canvas c) {
+        c.drawCircle(attackBtnCenterPos.x, attackBtnCenterPos.y, attackBtnRadius, circlePaint);
+    }
+
+    private void drawSkillBtn(Canvas c) {
+        c.drawCircle(skillBtnCenterPos.x, skillBtnCenterPos.y, skillBtnRadius, circlePaint);
+    }
+
+    private void drawSparkSkillBtn(Canvas c) {
+        c.drawCircle(sparkSkillBtnCenterPos.x, sparkSkillBtnCenterPos.y, sparkSkillBtnRadius, circlePaint);
+    }
+
+    private void drawMenuButton(Canvas c) {
+        // Draw the menu button using ButtonImages
+        Bitmap buttonImage = ButtonImages.PLAYING_MENU.getBtnImg(btnMenu.isPushed());
+        c.drawBitmap(buttonImage, btnMenu.getHitbox().left, btnMenu.getHitbox().top, null);
+    }
+
+    private void drawHealthBar(Canvas c) {
         Player player = playing.getPlayer();
         for (int i = 0; i < player.getMaxHealth() / 100; i++) {
             int x = healthIconX + 100 * i;
@@ -160,6 +165,51 @@ public class PlayingUI {
             textPaint.setColor(Color.WHITE);
             c.drawText("x" + player.getShieldHits(), armorX + 90, statusY + 25, textPaint);
             textPaint.setTextSize(30);
+        }
+    }
+
+    private void drawMapLevel(Canvas c) {
+        try {
+            // Get current map level from playing with null safety
+            if (playing == null || playing.getMapManager() == null) {
+                return; // Exit safely if objects are null
+            }
+
+            int currentMapLevel = playing.getMapManager().getCurrentMapLevel();
+
+            // Position at top-right corner
+            float mapTextX = 1600;
+            float mapTextY = 80;
+
+            // Paint for map level text
+            Paint mapLevelPaint = new Paint();
+            mapLevelPaint.setColor(Color.WHITE);
+            mapLevelPaint.setTextSize(40);
+            mapLevelPaint.setFakeBoldText(true);
+            mapLevelPaint.setAntiAlias(true);
+
+            // Paint for background
+            Paint bgPaint = new Paint();
+            bgPaint.setAntiAlias(true);
+
+            String mapText;
+            if (currentMapLevel == 1) {
+                mapText = "MAP 1";
+                bgPaint.setColor(Color.argb(150, 0, 100, 0)); // Green background for Map 1
+            } else {
+                mapText = "MAP 2 - SNOW";
+                bgPaint.setColor(Color.argb(150, 0, 150, 200)); // Blue background for Snow Map
+                mapLevelPaint.setColor(Color.CYAN); // Cyan text for snow theme
+            }
+
+            // Draw background
+            c.drawRoundRect(mapTextX - 20, mapTextY - 35, mapTextX + 250, mapTextY + 15, 15, 15, bgPaint);
+
+            // Draw map level text
+            c.drawText(mapText, mapTextX, mapTextY, mapLevelPaint);
+        } catch (Exception e) {
+            // If any error occurs, just don't draw the map level indicator
+            System.err.println("Error drawing map level: " + e.getMessage());
         }
     }
 

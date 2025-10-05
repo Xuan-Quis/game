@@ -243,4 +243,11 @@ public class Player extends Character {
     public float getSpeedMultiplier() {
         return speedMultiplier;
     }
+
+    // Method to reset player position when transitioning between maps
+    public void resetPosition(float x, float y) {
+        // Reset player hitbox to new position
+        getHitbox().offsetTo(x - getHitbox().width() / 2, y - getHitbox().height() / 2);
+        System.out.println("🚀 Player position reset to: (" + x + ", " + y + ")");
+    }
 }

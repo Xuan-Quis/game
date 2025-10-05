@@ -61,16 +61,16 @@ public class Playing extends BaseState implements GameStateInterface {
     private int swordHitSoundId;
     private int playerHitWallSoundId;
     private int boomExplosionSoundId;
-   private boolean isSwordSoundEnabled = true; // Add this line
+    private boolean isSwordSoundEnabled = true; // Add this line
 
 
     private ArrayList<Projectile> projectiles = new ArrayList<>();
     private final Paint projectilePaint = new Paint();
-   // thời điểm gây sát thương (ms)
+    // thời điểm gây sát thương (ms)
     private ArrayList<ExplosionEffect> explosionEffects = new ArrayList<>();
     private ArrayList<EffectExplosion> effectExplosions = new ArrayList<>();
     private ArrayList<SparkSkill> sparkSkills = new ArrayList<>();
-    
+
     // Spawn enemies
     private long lastSpawnTime = 0;
 
@@ -217,18 +217,18 @@ public class Playing extends BaseState implements GameStateInterface {
     private void buildEntityList() {
         listOfDrawables = mapManager.getCurrentMap().getDrawableList();
         // Khởi tạo Boom với các resource id ảnh di chuyển và tấn công
-        int[] boomMoveResIds = new int[] {
-            R.drawable.boom_front,
-            R.drawable.boom_left,
-            R.drawable.boom_right,
-            R.drawable.boom_behind
+        int[] boomMoveResIds = new int[]{
+                R.drawable.boom_front,
+                R.drawable.boom_left,
+                R.drawable.boom_right,
+                R.drawable.boom_behind
         };
-        int[] boomAttackResIds = new int[] {
-            R.drawable.boom_smile,
-            R.drawable.boom_bum,
-            R.drawable.boom_bum_2,
-            R.drawable.boom_bum_3,
-            R.drawable.boom_bum_4,
+        int[] boomAttackResIds = new int[]{
+                R.drawable.boom_smile,
+                R.drawable.boom_bum,
+                R.drawable.boom_bum_2,
+                R.drawable.boom_bum_3,
+                R.drawable.boom_bum_4,
                 R.drawable.boom_bum_5,
                 R.drawable.boom_bum_6
         };
@@ -289,120 +289,120 @@ public class Playing extends BaseState implements GameStateInterface {
 
     }
 
-private void checkPlayerAttack() {
-    System.out.println("⚔️ Player đang attack! Damage: " + player.getDamage());
+    private void checkPlayerAttack() {
+        System.out.println("⚔️ Player đang attack! Damage: " + player.getDamage());
 
-    RectF attackBoxWithoutCamera = new RectF(player.getAttackBox());
-    attackBoxWithoutCamera.left -= cameraX;
-    attackBoxWithoutCamera.top -= cameraY;
-    attackBoxWithoutCamera.right -= cameraX;
-    attackBoxWithoutCamera.bottom -= cameraY;
-    
-    System.out.println("🎯 Attack box: (" + attackBoxWithoutCamera.left + ", " + attackBoxWithoutCamera.top + 
-                      ", " + attackBoxWithoutCamera.right + ", " + attackBoxWithoutCamera.bottom + ")");
+        RectF attackBoxWithoutCamera = new RectF(player.getAttackBox());
+        attackBoxWithoutCamera.left -= cameraX;
+        attackBoxWithoutCamera.top -= cameraY;
+        attackBoxWithoutCamera.right -= cameraX;
+        attackBoxWithoutCamera.bottom -= cameraY;
 
-    // Check Skeleton
-    if (mapManager.getCurrentMap().getSkeletonArrayList() != null) {
-        System.out.println("👹 Có " + mapManager.getCurrentMap().getSkeletonArrayList().size() + " Skeleton");
-        for (Skeleton s : mapManager.getCurrentMap().getSkeletonArrayList()) {
-            System.out.println("🔍 Kiểm tra Skeleton tại: (" + s.getHitbox().centerX() + ", " + s.getHitbox().centerY() + ") - HP: " + s.getCurrentHealth());
-            if (attackBoxWithoutCamera.intersects(
-                    s.getHitbox().left,
-                    s.getHitbox().top,
-                    s.getHitbox().right,
-                    s.getHitbox().bottom)) {
+        System.out.println("🎯 Attack box: (" + attackBoxWithoutCamera.left + ", " + attackBoxWithoutCamera.top +
+                ", " + attackBoxWithoutCamera.right + ", " + attackBoxWithoutCamera.bottom + ")");
 
-                System.out.println("💥 HIT Skeleton! Damage: " + player.getDamage());
-                // Trừ máu quái
-                s.damageCharacter(player.getDamage());
+        // Check Skeleton
+        if (mapManager.getCurrentMap().getSkeletonArrayList() != null) {
+            System.out.println("👹 Có " + mapManager.getCurrentMap().getSkeletonArrayList().size() + " Skeleton");
+            for (Skeleton s : mapManager.getCurrentMap().getSkeletonArrayList()) {
+                System.out.println("🔍 Kiểm tra Skeleton tại: (" + s.getHitbox().centerX() + ", " + s.getHitbox().centerY() + ") - HP: " + s.getCurrentHealth());
+                if (attackBoxWithoutCamera.intersects(
+                        s.getHitbox().left,
+                        s.getHitbox().top,
+                        s.getHitbox().right,
+                        s.getHitbox().bottom)) {
 
-                // 🔊 Phát âm thanh nhát chém khi trúng
-                playSwordHit();
+                    System.out.println("💥 HIT Skeleton! Damage: " + player.getDamage());
+                    // Trừ máu quái
+                    s.damageCharacter(player.getDamage());
 
-                // Nếu quái chết thì set inactive và drop item
-                if (s.getCurrentHealth() <= 0) {
-                    s.setSkeletonInactive();
-                    enemyKilled(); // Sử dụng method thống nhất thay vì killCount++ trực tiếp
-                    System.out.println("💀 Skeleton đã chết! Kill count: " + killCount);
-                    // Chỉ drop item nếu chưa drop (tránh drop nhiều lần)
-                    if (!s.hasDroppedItem()) {
-                        s.setHasDroppedItem(true);
-                        Item droppedItem = HelpMethods.tryDropItem(new PointF(s.getHitbox().centerX(), s.getHitbox().centerY()));
-                        if (droppedItem != null) {
-                            mapManager.getCurrentMap().getItemArrayList().add(droppedItem);
-                            System.out.println("🎁 Skeleton chết! Drop item: " + droppedItem.getItemType());
-                        } else {
-                            System.out.println("❌ Skeleton chết nhưng không drop item");
+                    // 🔊 Phát âm thanh nhát chém khi trúng
+                    playSwordHit();
+
+                    // Nếu quái chết thì set inactive và drop item
+                    if (s.getCurrentHealth() <= 0) {
+                        s.setSkeletonInactive();
+                        enemyKilled(); // Sử dụng method thống nhất thay vì killCount++ trực tiếp
+                        System.out.println("💀 Skeleton đã chết! Kill count: " + killCount);
+                        // Chỉ drop item nếu chưa drop (tránh drop nhiều lần)
+                        if (!s.hasDroppedItem()) {
+                            s.setHasDroppedItem(true);
+                            Item droppedItem = HelpMethods.tryDropItem(new PointF(s.getHitbox().centerX(), s.getHitbox().centerY()));
+                            if (droppedItem != null) {
+                                mapManager.getCurrentMap().getItemArrayList().add(droppedItem);
+                                System.out.println("🎁 Skeleton chết! Drop item: " + droppedItem.getItemType());
+                            } else {
+                                System.out.println("❌ Skeleton chết nhưng không drop item");
+                            }
                         }
                     }
                 }
             }
         }
-    }
-    
-    // Check Monster (tách riêng khỏi vòng lặp Skeleton)
-    if (mapManager.getCurrentMap().getMonsterArrayList() != null) {
-        System.out.println("👹 Có " + mapManager.getCurrentMap().getMonsterArrayList().size() + " Monster");
-        for (Monster m : mapManager.getCurrentMap().getMonsterArrayList()) {
-            System.out.println("🔍 Kiểm tra Monster tại: (" + m.getHitbox().centerX() + ", " + m.getHitbox().centerY() + ") - HP: " + m.getCurrentHealth());
-            if (attackBoxWithoutCamera.intersects(
-                    m.getHitbox().left,
-                    m.getHitbox().top,
-                    m.getHitbox().right,
-                    m.getHitbox().bottom)) {
 
-                System.out.println("💥 HIT Monster! Damage: " + player.getDamage());
-                m.damageCharacter(player.getDamage());
-                playSwordHit();
+        // Check Monster (tách riêng khỏi vòng lặp Skeleton)
+        if (mapManager.getCurrentMap().getMonsterArrayList() != null) {
+            System.out.println("👹 Có " + mapManager.getCurrentMap().getMonsterArrayList().size() + " Monster");
+            for (Monster m : mapManager.getCurrentMap().getMonsterArrayList()) {
+                System.out.println("🔍 Kiểm tra Monster tại: (" + m.getHitbox().centerX() + ", " + m.getHitbox().centerY() + ") - HP: " + m.getCurrentHealth());
+                if (attackBoxWithoutCamera.intersects(
+                        m.getHitbox().left,
+                        m.getHitbox().top,
+                        m.getHitbox().right,
+                        m.getHitbox().bottom)) {
 
-                if (m.getCurrentHealth() <= 0) {
-                    m.setMonsterInactive();
-                    enemyKilled(); // Sử dụng method thống nhất thay vì killCount++ trực tiếp
-                    System.out.println("💀 Monster đã chết! Kill count: " + killCount);
-                    // Chỉ drop item nếu chưa drop (tránh drop nhiều lần)
-                    if (!m.hasDroppedItem()) {
-                        m.setHasDroppedItem(true);
-                        Item droppedItem = HelpMethods.tryDropItem(new PointF(m.getHitbox().centerX(), m.getHitbox().centerY()));
-                        if (droppedItem != null) {
-                            mapManager.getCurrentMap().getItemArrayList().add(droppedItem);
-                            System.out.println("🎁 Monster chết! Drop item: " + droppedItem.getItemType());
-                        } else {
-                            System.out.println("❌ Monster chết nhưng không drop item");
+                    System.out.println("💥 HIT Monster! Damage: " + player.getDamage());
+                    m.damageCharacter(player.getDamage());
+                    playSwordHit();
+
+                    if (m.getCurrentHealth() <= 0) {
+                        m.setMonsterInactive();
+                        enemyKilled(); // Sử dụng method thống nhất thay vì killCount++ trực tiếp
+                        System.out.println("💀 Monster đã chết! Kill count: " + killCount);
+                        // Chỉ drop item nếu chưa drop (tránh drop nhiều lần)
+                        if (!m.hasDroppedItem()) {
+                            m.setHasDroppedItem(true);
+                            Item droppedItem = HelpMethods.tryDropItem(new PointF(m.getHitbox().centerX(), m.getHitbox().centerY()));
+                            if (droppedItem != null) {
+                                mapManager.getCurrentMap().getItemArrayList().add(droppedItem);
+                                System.out.println("🎁 Monster chết! Drop item: " + droppedItem.getItemType());
+                            } else {
+                                System.out.println("❌ Monster chết nhưng không drop item");
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    // Check Boom (thêm logic tấn công Boom)
-    if (mapManager.getCurrentMap().getBoomArrayList() != null) {
-        System.out.println("💥 Có " + mapManager.getCurrentMap().getBoomArrayList().size() + " Boom");
-        for (Boom boom : mapManager.getCurrentMap().getBoomArrayList()) {
-            if (!boom.isActive()) continue;
-            System.out.println("🔍 Kiểm tra Boom tại: (" + boom.getHitbox().centerX() + ", " + boom.getHitbox().centerY() + ") - HP: " + boom.getCurrentHealth());
-            if (attackBoxWithoutCamera.intersects(
-                    boom.getHitbox().left,
-                    boom.getHitbox().top,
-                    boom.getHitbox().right,
-                    boom.getHitbox().bottom)) {
+        // Check Boom (thêm logic tấn công Boom)
+        if (mapManager.getCurrentMap().getBoomArrayList() != null) {
+            System.out.println("💥 Có " + mapManager.getCurrentMap().getBoomArrayList().size() + " Boom");
+            for (Boom boom : mapManager.getCurrentMap().getBoomArrayList()) {
+                if (!boom.isActive()) continue;
+                System.out.println("🔍 Kiểm tra Boom tại: (" + boom.getHitbox().centerX() + ", " + boom.getHitbox().centerY() + ") - HP: " + boom.getCurrentHealth());
+                if (attackBoxWithoutCamera.intersects(
+                        boom.getHitbox().left,
+                        boom.getHitbox().top,
+                        boom.getHitbox().right,
+                        boom.getHitbox().bottom)) {
 
-                System.out.println("💥 HIT Boom! Damage: " + player.getDamage());
-                boom.damageCharacter(player.getDamage());
-                playSwordHit();
+                    System.out.println("💥 HIT Boom! Damage: " + player.getDamage());
+                    boom.damageCharacter(player.getDamage());
+                    playSwordHit();
 
-                if (boom.getCurrentHealth() <= 0) {
-                    boom.setBoomInactive();
-                    enemyKilled(); // Sử dụng method thống nhất thay vì killCount++ trực tiếp
-                    System.out.println("💀 Boom đã chết! Kill count: " + killCount);
-                    // Boom không drop item
+                    if (boom.getCurrentHealth() <= 0) {
+                        boom.setBoomInactive();
+                        enemyKilled(); // Sử dụng method thống nhất thay vì killCount++ trực tiếp
+                        System.out.println("💀 Boom đã chết! Kill count: " + killCount);
+                        // Boom không drop item
+                    }
                 }
             }
         }
-    }
 
-    player.setAttackChecked(true);
-}
+        player.setAttackChecked(true);
+    }
 
     private void updateItems(double delta) {
         if (mapManager.getCurrentMap().getItemArrayList() != null) {
@@ -410,31 +410,31 @@ private void checkPlayerAttack() {
             java.util.Iterator<Item> itemIterator = mapManager.getCurrentMap().getItemArrayList().iterator();
             while (itemIterator.hasNext()) {
                 Item item = itemIterator.next();
-                
+
                 if (!item.isActive()) {
                     // Xóa items đã deactivate khỏi map
                     itemIterator.remove();
                     System.out.println("🗑️ Xóa item " + item.getItemType() + " đã deactivate khỏi map");
                     continue;
                 }
-                
+
                 item.update(delta);
-                
+
                 // Kiểm tra collision với player
                 // Chuyển item hitbox từ world coords sang screen coords để so sánh với player
                 RectF itemScreenHitbox = new RectF(
-                    item.getHitbox().left + cameraX,
-                    item.getHitbox().top + cameraY,
-                    item.getHitbox().right + cameraX,
-                    item.getHitbox().bottom + cameraY
+                        item.getHitbox().left + cameraX,
+                        item.getHitbox().top + cameraY,
+                        item.getHitbox().right + cameraX,
+                        item.getHitbox().bottom + cameraY
                 );
-                
+
                 // Debug ít hơn - chỉ khi có collision gần
                 float distance = (float) Math.sqrt(
-                    Math.pow(itemScreenHitbox.centerX() - player.getHitbox().centerX(), 2) + 
-                    Math.pow(itemScreenHitbox.centerY() - player.getHitbox().centerY(), 2)
+                        Math.pow(itemScreenHitbox.centerX() - player.getHitbox().centerX(), 2) +
+                                Math.pow(itemScreenHitbox.centerY() - player.getHitbox().centerY(), 2)
                 );
-                
+
                 if (distance < 300) { // Tăng từ 200 lên 300 để debug nhiều hơn
                     System.out.println("🎯 Item " + item.getItemType() + " tại: (" + itemScreenHitbox.centerX() + ", " + itemScreenHitbox.centerY() + ")");
                     System.out.println("👤 Player tại: (" + player.getHitbox().centerX() + ", " + player.getHitbox().centerY() + ")");
@@ -442,13 +442,13 @@ private void checkPlayerAttack() {
                     System.out.println("🎯 Item hitbox: (" + itemScreenHitbox.left + ", " + itemScreenHitbox.top + ", " + itemScreenHitbox.right + ", " + itemScreenHitbox.bottom + ")");
                     System.out.println("👤 Player hitbox: (" + player.getHitbox().left + ", " + player.getHitbox().top + ", " + player.getHitbox().right + ", " + player.getHitbox().bottom + ")");
                 }
-                
+
                 // Kiểm tra collision bằng logic đơn giản hơn
                 boolean collision = (itemScreenHitbox.left < player.getHitbox().right &&
-                                   itemScreenHitbox.right > player.getHitbox().left &&
-                                   itemScreenHitbox.top < player.getHitbox().bottom &&
-                                   itemScreenHitbox.bottom > player.getHitbox().top);
-                
+                        itemScreenHitbox.right > player.getHitbox().left &&
+                        itemScreenHitbox.top < player.getHitbox().bottom &&
+                        itemScreenHitbox.bottom > player.getHitbox().top);
+
                 if (collision) {
                     // Player ăn item
                     System.out.println("💥 COLLISION DETECTED! Player chạm vào item " + item.getItemType());
@@ -465,13 +465,13 @@ private void checkPlayerAttack() {
                     System.out.println("✅ Item đã được ăn và xóa khỏi map!");
                 }
             }
-            
+
             System.out.println("🔍 Có " + mapManager.getCurrentMap().getItemArrayList().size() + " items trong map");
         } else {
             System.out.println("❌ itemArrayList is null!");
         }
     }
-    
+
     private void spawnEnemies() {
         // CHỈ SPAWN QUÁI Ở MAP NGOÀI - KHÔNG SPAWN Ở MAP TRONG NHÀ
         if (!isOutsideMap()) {
@@ -483,11 +483,11 @@ private void checkPlayerAttack() {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastSpawnTime >= 3000) { // 3 giây spawn 1 lần
             lastSpawnTime = currentTime;
-            
+
             // KIỂM tra NULL trước khi spawn để tránh crash
             if (mapManager.getCurrentMap().getSkeletonArrayList() == null ||
-                mapManager.getCurrentMap().getMonsterArrayList() == null ||
-                mapManager.getCurrentMap().getBoomArrayList() == null) {
+                    mapManager.getCurrentMap().getMonsterArrayList() == null ||
+                    mapManager.getCurrentMap().getBoomArrayList() == null) {
                 System.out.println("❌ Một hoặc nhiều ArrayList enemies là null - không thể spawn");
                 return;
             }
@@ -500,7 +500,7 @@ private void checkPlayerAttack() {
                 // Spawn ở vị trí random xung quanh player
                 float spawnX = player.getHitbox().centerX() + (float) (Math.random() - 0.5) * 1000;
                 float spawnY = player.getHitbox().centerY() + (float) (Math.random() - 0.5) * 1000;
-                
+
                 // Chọn loại quái random
                 double random = Math.random();
                 if (random < 0.4) { // 40% Skeleton
@@ -540,6 +540,7 @@ private void checkPlayerAttack() {
         // Vẽ Shield effect
         drawShieldEffect(c);
     }
+
     private void drawProjectiles(Canvas c) {
         for (Projectile p : projectiles) {
             if (p.isActive()) {
@@ -571,6 +572,7 @@ private void checkPlayerAttack() {
             }
         }
     }
+
     public void castThrowSwordSkill() {
         player.castThrowSword(this);
     }
@@ -583,6 +585,7 @@ private void checkPlayerAttack() {
         player.castSparkSkill(this);
         // Âm thanh đã được phát trong Player.castSparkSkill()
     }
+
     private void drawSortedEntities(Canvas c) {
         for (Entity e : listOfDrawables) {
             if (e instanceof Skeleton skeleton) {
@@ -596,8 +599,7 @@ private void checkPlayerAttack() {
                 mapManager.drawItem(c, item);
             } else if (e instanceof Player) {
                 drawPlayer(c);
-            }
-            else if (e instanceof Monster monster) {
+            } else if (e instanceof Monster monster) {
                 if (monster.isActive())
                     drawCharacter(c, monster);
             } else if (e instanceof Boom boom) {
@@ -652,7 +654,7 @@ private void checkPlayerAttack() {
         if (boom.getCurrentHealth() < boom.getMaxHealth())
             drawHealthBar(canvas, boom);
     }
-    
+
     private void drawItems(Canvas c) {
         if (mapManager.getCurrentMap().getItemArrayList() != null) {
             for (Item item : mapManager.getCurrentMap().getItemArrayList()) {
@@ -662,12 +664,12 @@ private void checkPlayerAttack() {
             }
         }
     }
-    
+
     private void drawShieldEffect(Canvas c) {
         float centerX = player.getHitbox().centerX() + cameraX;
         float centerY = player.getHitbox().centerY() + cameraY;
         float radius = player.getHitbox().width() / 2 + 20; // Vòng tròn lớn hơn player một chút
-        
+
         // Vẽ shield effect
         if (player.hasShield()) {
             // Vẽ vòng tròn xanh quanh player
@@ -675,9 +677,9 @@ private void checkPlayerAttack() {
             shieldPaint.setColor(Color.CYAN);
             shieldPaint.setStyle(Paint.Style.STROKE);
             shieldPaint.setStrokeWidth(8);
-            
+
             c.drawCircle(centerX, centerY, radius, shieldPaint);
-            
+
             // Vẽ số đòn còn lại
             Paint textPaint = new Paint();
             textPaint.setColor(Color.WHITE);
@@ -685,7 +687,7 @@ private void checkPlayerAttack() {
             textPaint.setFakeBoldText(true);
             c.drawText("" + player.getShieldHits(), centerX - 10, centerY + 10, textPaint);
         }
-        
+
         // Vẽ speed boost effect
         if (player.hasSpeedBoost()) {
             // Vẽ vòng tròn vàng cho speed boost
@@ -693,9 +695,9 @@ private void checkPlayerAttack() {
             speedPaint.setColor(Color.YELLOW);
             speedPaint.setStyle(Paint.Style.STROKE);
             speedPaint.setStrokeWidth(6);
-            
+
             c.drawCircle(centerX, centerY, radius + 15, speedPaint);
-            
+
             // Vẽ text "SPEED"
             Paint speedTextPaint = new Paint();
             speedTextPaint.setColor(Color.YELLOW);
@@ -805,9 +807,11 @@ private void checkPlayerAttack() {
     }
 
     private boolean isOutsideMap() {
-        // Kiểm tra xem map hiện tại có phải là map ngoài không
-        return mapManager.getCurrentMap().getFloorType() == com.tutorial.androidgametutorial.environments.Tiles.OUTSIDE;
+        // Kiểm tra xem map hiện tại có phải là map ngoài không (bao gồm cả SNOW map)
+        return mapManager.getCurrentMap().getFloorType() == com.tutorial.androidgametutorial.environments.Tiles.OUTSIDE ||
+               mapManager.getCurrentMap().getFloorType() == com.tutorial.androidgametutorial.environments.Tiles.SNOW;
     }
+
     private void checkPlayerOutOfBounds() {
         // Tính toán vị trí thế giới của người chơi
         float playerWorldX = -cameraX + player.getHitbox().centerX();
@@ -819,7 +823,7 @@ private void checkPlayerAttack() {
 
         // Kiểm tra nếu người chơi ra ngoài biên map
         if (playerWorldX < 0 || playerWorldX > mapWidth ||
-            playerWorldY < 0 || playerWorldY > mapHeight) {
+                playerWorldY < 0 || playerWorldY > mapHeight) {
             // Chuyển sang màn hình game over
             game.setCurrentGameState(Game.GameState.DEATH_SCREEN);
         }
@@ -863,13 +867,13 @@ private void checkPlayerAttack() {
     }
 
 
-
     public void dispose() {
         if (soundPool != null) {
             soundPool.release();
             soundPool = null;
         }
     }
+
     public void addProjectile(Projectile p) {
         projectiles.add(p);
     }
@@ -1033,6 +1037,7 @@ private void checkPlayerAttack() {
             }
         }
     }
+
     public float getCameraX() {
         return cameraX;
     }
@@ -1049,7 +1054,59 @@ private void checkPlayerAttack() {
         soundPool.play(playerHitWallSoundId, 1, 1, 1, 0, 1f);
     }
 
+    private void checkVictoryCondition() {
+        // Kiểm tra xem đã đủ thời gian để chiến thắng chưa
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - gameStartTime >= VICTORY_TIME) {
+            int currentMapLevel = mapManager.getCurrentMapLevel();
+
+            if (currentMapLevel == 1) {
+                // Hoàn thành Map 1 - chuyển sang Map 2
+                System.out.println("🎉 HOÀN THÀNH MAP 1! Chuyển sang Map 2 - Snow World!");
+                System.out.println("📊 TỔNG KẾT MAP 1: Đã tiêu diệt " + killCount + " quái vật!");
+                mapManager.progressToNextMap();
+
+                // Reset CHỈSYSTEM chơi thời gian cho map mới - KHÔNG RESET KILLCOUNT
+                gameStartTime = System.currentTimeMillis();
+                // KHÔNG RESET killCount - để tích lũy số quái đã giết qua cả 2 map
+                // killCount = 0; // XÓA DÒNG NÀY
+
+                // Reset player position for new map
+                float playerStartX = GAME_WIDTH / 2f;
+                float playerStartY = GAME_HEIGHT / 2f;
+                player.resetPosition(playerStartX, playerStartY);
+
+                System.out.println("❄️ Bắt đầu Map 2 - Thế giới băng tuyết với nhiều quái vật hơn!");
+                System.out.println("📊 Số quái đã tiêu diệt từ Map 1: " + killCount + " - Tiếp tục tích lũy!");
+
+            } else if (currentMapLevel == 2) {
+                // Hoàn thành Map 2 - hiển thị màn hình chiến thắng
+                System.out.println("🏆 CHIẾN THẮNG HOÀN TOÀN! Đã hoàn thành cả 2 map với " + killCount + " quái bị tiêu diệt!");
+                System.out.println("📊 FINAL KILL COUNT: " + killCount);
+                game.getWinScreen().setKillCount(killCount);
+                game.setCurrentGameState(Game.GameState.WIN_SCREEN);
+            }
+        }
+    }
+
+    public void enemyKilled() {
+        killCount++;
+        System.out.println("✅ Đã tiêu diệt " + killCount + " quái.");
+    }
+
+    public void setDifficulty(Game.Difficulty difficulty) {
+        this.currentDifficulty = difficulty;
+        System.out.println("🎮 Độ khó đã được set: " + difficulty);
+    }
+
+    public Game.Difficulty getCurrentDifficulty() {
+        return currentDifficulty;
+    }
+
     public void resetGame() {
+        // Reset map progression to Map 1
+        mapManager.resetToMap1();
+
         // Reset camera về vị trí ban đầu (giữa map)
         calcStartCameraValues();
 
@@ -1081,30 +1138,5 @@ private void checkPlayerAttack() {
         System.out.println("📍 Camera reset về: (" + cameraX + ", " + cameraY + ")");
         System.out.println("👹 Map đã được khôi phục về trạng thái ban đầu với quái vật gốc");
         System.out.println("⏰ Timer reset: " + gameStartTime + ", Kill count reset: " + killCount);
-    }
-
-    private void checkVictoryCondition() {
-        // Kiểm tra xem đã đủ thời gian để chiến thắng chưa
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - gameStartTime >= VICTORY_TIME) {
-            // Chuyển sang màn hình chiến thắng sau 20 giây
-            System.out.println("🏆 CHIẾN THẮNG! Đã sống sót 20 giây với " + killCount + " quái bị tiêu diệt!");
-            game.getWinScreen().setKillCount(killCount);
-            game.setCurrentGameState(Game.GameState.WIN_SCREEN);
-        }
-    }
-
-    public void enemyKilled() {
-        killCount++;
-        System.out.println("✅ Đã tiêu diệt " + killCount + " quái.");
-    }
-
-    public void setDifficulty(Game.Difficulty difficulty) {
-        this.currentDifficulty = difficulty;
-        System.out.println("🎮 Độ khó đã được set: " + difficulty);
-    }
-
-    public Game.Difficulty getCurrentDifficulty() {
-        return currentDifficulty;
     }
 }

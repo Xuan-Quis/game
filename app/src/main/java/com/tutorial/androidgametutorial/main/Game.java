@@ -43,6 +43,10 @@ public class Game {
     // Update toggle buttons to use images for music and sound
     private Bitmap musicIcon, soundIcon;
 
+    // Add surface management variables
+    private volatile boolean surfaceReady = false;
+    private final Object renderLock = new Object();
+
     public Game(SurfaceHolder holder, Context context) {
         this.holder = holder;
         this.context = context;
@@ -117,31 +121,51 @@ public class Game {
     }
 
     public void render() {
-        Canvas c = holder.lockCanvas();
-        c.drawColor(Color.BLACK);
+        // Synchronize rendering to prevent drawing on a released surface
+        synchronized (renderLock) {
+            if (!surfaceReady) return;
 
-        // Draw the game
-        switch (currentGameState) {
-            case MENU -> menu.render(c);
-            case PLAYING -> {
-                playing.render(c);
+            Canvas c = null;
+            try {
+                c = holder.lockCanvas();
+                if (c == null) return; // Surface not ready
 
-                if (musicIcon != null) {
-                    Bitmap scaledMusicIcon = Bitmap.createScaledBitmap(musicIcon, 64, 64, false);
-                    c.drawBitmap(scaledMusicIcon, toggleMusicButton.getHitbox().left, toggleMusicButton.getHitbox().top, null);
+                c.drawColor(Color.BLACK);
+
+                // Draw the game
+                switch (currentGameState) {
+                    case MENU -> menu.render(c);
+                    case PLAYING -> {
+                        playing.render(c);
+
+                        if (musicIcon != null) {
+                            Bitmap scaledMusicIcon = Bitmap.createScaledBitmap(musicIcon, 64, 64, false);
+                            c.drawBitmap(scaledMusicIcon, toggleMusicButton.getHitbox().left, toggleMusicButton.getHitbox().top, null);
+                        }
+                        if (soundIcon != null) {
+                            Bitmap scaledSoundIcon = Bitmap.createScaledBitmap(soundIcon, 64, 64, false);
+                            c.drawBitmap(scaledSoundIcon, toggleSwordSoundButton.getHitbox().left, toggleSwordSoundButton.getHitbox().top, null);
+                        }
+                    }
+                    case DEATH_SCREEN -> deathScreen.render(c);
+                    case WIN_SCREEN -> winScreen.render(c);
+                    case LEADERBOARD -> leaderboardScreen.render(c);
+                    case DIFFICULTY -> difficultyScreen.render(c);
                 }
-                if (soundIcon != null) {
-                    Bitmap scaledSoundIcon = Bitmap.createScaledBitmap(soundIcon, 64, 64, false);
-                    c.drawBitmap(scaledSoundIcon, toggleSwordSoundButton.getHitbox().left, toggleSwordSoundButton.getHitbox().top, null);
+            } catch (Exception e) {
+                // Log the error but don't crash
+                System.err.println("Error during rendering: " + e.getMessage());
+            } finally {
+                if (c != null) {
+                    try {
+                        holder.unlockCanvasAndPost(c);
+                    } catch (Exception e) {
+                        // Surface was already released, ignore
+                        System.err.println("Surface already released during unlock: " + e.getMessage());
+                    }
                 }
             }
-            case DEATH_SCREEN -> deathScreen.render(c);
-            case WIN_SCREEN -> winScreen.render(c);
-            case LEADERBOARD -> leaderboardScreen.render(c);
-            case DIFFICULTY -> difficultyScreen.render(c);
         }
-
-        holder.unlockCanvasAndPost(c);
     }
 
     public boolean touchEvent(MotionEvent event) {
@@ -249,6 +273,19 @@ public class Game {
                 backgroundMusic.release();
             } catch (Exception e) {
                 System.err.println("Error releasing MediaPlayer: " + e.getMessage());
+            }
+        }
+        // Stop the game loop
+        gameLoop.stopGameLoop();
+    }
+
+    // Surface management methods
+    public void setSurfaceReady(boolean ready) {
+        synchronized (renderLock) {
+            this.surfaceReady = ready;
+            if (!ready) {
+                // Stop the game loop when surface becomes unavailable
+                gameLoop.stopGameLoop();
             }
         }
     }

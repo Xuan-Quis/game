@@ -11,7 +11,8 @@ import com.tutorial.androidgametutorial.helpers.interfaces.BitmapMethods;
 public enum Tiles implements BitmapMethods {
 
     OUTSIDE(R.drawable.tileset_floor, 22, 26),
-    INSIDE(R.drawable.floor_inside, 22, 22);
+    INSIDE(R.drawable.floor_inside, 22, 22),
+    SNOW(R.drawable.tileset_floor, 22, 26); // Snow map using same tileset but different tile indices
 
     private Bitmap[] sprites;
 

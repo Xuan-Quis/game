@@ -27,11 +27,25 @@ public enum ButtonImages implements BitmapMethods {
         this.width = width;
         this.height = height;
         Bitmap buttonAtlas = BitmapFactory.decodeResource(MainActivity.getGameContext().getResources(), resID, options);
-        if (isAtlas && buttonAtlas.getWidth() >= width * 2) {
-            normal = Bitmap.createBitmap(buttonAtlas, 0, 0, width, height);
-            pushed = Bitmap.createBitmap(buttonAtlas, width, 0, width, height);
+
+        // Add bounds checking to prevent IllegalArgumentException
+        if (isAtlas && buttonAtlas != null && buttonAtlas.getWidth() >= width * 2 && buttonAtlas.getHeight() >= height) {
+            try {
+                normal = Bitmap.createBitmap(buttonAtlas, 0, 0, width, height);
+                pushed = Bitmap.createBitmap(buttonAtlas, width, 0, width, height);
+            } catch (IllegalArgumentException e) {
+                // Fallback: use the whole atlas as normal state
+                normal = Bitmap.createScaledBitmap(buttonAtlas, width, height, true);
+                pushed = normal;
+            }
         } else {
-            normal = Bitmap.createScaledBitmap(buttonAtlas, width, height, true);
+            // Scale the entire bitmap to fit the required dimensions
+            if (buttonAtlas != null) {
+                normal = Bitmap.createScaledBitmap(buttonAtlas, width, height, true);
+            } else {
+                // Create a placeholder bitmap if resource loading fails
+                normal = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            }
             pushed = normal;
         }
     }

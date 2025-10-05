@@ -4,10 +4,10 @@ public class GameLoop implements Runnable {
 
     private Thread gameThread;
     private Game game;
+    private volatile boolean running = false;
 
     public GameLoop(Game game) {
         this.game = game;
-        gameThread = new Thread(this);
     }
 
     @Override
@@ -19,7 +19,7 @@ public class GameLoop implements Runnable {
         long lastDelta = System.nanoTime();
         long nanoSec = 1_000_000_000;
 
-        while (true) {
+        while (running) {
             long nowDelta = System.nanoTime();
             double timeSinceLastDelta = nowDelta - lastDelta;
             double delta = timeSinceLastDelta / nanoSec;
@@ -36,12 +36,32 @@ public class GameLoop implements Runnable {
 //                lastFPScheck += 1000;
 //            }
 
-
+            // Add small sleep to prevent excessive CPU usage
+            try {
+                Thread.sleep(16); // ~60 FPS
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
         }
-
     }
 
     public void startGameLoop() {
-        gameThread.start();
+        if (!running) {
+            running = true;
+            gameThread = new Thread(this);
+            gameThread.start();
+        }
+    }
+
+    public void stopGameLoop() {
+        running = false;
+        if (gameThread != null) {
+            try {
+                gameThread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 }
