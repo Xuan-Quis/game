@@ -983,13 +983,17 @@ public class Playing extends BaseState implements GameStateInterface {
     }
 
     private void updateSparkSkills(double delta) {
-        Iterator<SparkSkill> it = sparkSkills.iterator();
+        // Tạo bản copy để tránh ConcurrentModificationException
+        ArrayList<SparkSkill> sparkSkillsCopy = new ArrayList<>(sparkSkills);
+        Iterator<SparkSkill> it = sparkSkillsCopy.iterator();
+
         while (it.hasNext()) {
             SparkSkill sparkSkill = it.next();
             if (sparkSkill.isActive()) {
                 sparkSkill.update(delta, this);
             } else {
-                it.remove();
+                // Remove từ ArrayList gốc, không phải bản copy
+                sparkSkills.remove(sparkSkill);
             }
         }
     }
@@ -1024,7 +1028,7 @@ public class Playing extends BaseState implements GameStateInterface {
 
                 // Reset CHỈSYSTEM chơi thời gian cho map mới - KHÔNG RESET KILLCOUNT
                 gameStartTime = System.currentTimeMillis();
-                // KHÔNG RESET killCount - để tích lũy số quái đã giết qua cả 2 map
+                // KHÔNG RESET killCount - để tích lũy số quái đã giết qua cả 3 map
                 // killCount = 0; // XÓA DÒNG NÀY
 
                 // Reset player position for new map
@@ -1036,9 +1040,26 @@ public class Playing extends BaseState implements GameStateInterface {
                 System.out.println("📊 Số quái đã tiêu diệt từ Map 1: " + killCount + " - Tiếp tục tích lũy!");
 
             } else if (currentMapLevel == 2) {
-                // Hoàn thành Map 2 - hiển thị màn hình chiến thắng
-                System.out.println("🏆 CHIẾN THẮNG HOÀN TOÀN! Đã hoàn thành cả 2 map với " + killCount + " quái bị tiêu diệt!");
-                System.out.println("📊 FINAL KILL COUNT: " + killCount);
+                // Hoàn thành Map 2 - chuyển sang Map 3 (Desert)
+                System.out.println("🎉 HOÀN THÀNH MAP 2! Chuyển sang Map 3 - Desert World!");
+                System.out.println("📊 TỔNG KẾT MAP 2: Đã tiêu diệt " + killCount + " quái vật!");
+                mapManager.progressToNextMap();
+
+                // Reset thời gian cho map mới - KHÔNG RESET KILLCOUNT
+                gameStartTime = System.currentTimeMillis();
+
+                // Reset player position for new map
+                float playerStartX = GAME_WIDTH / 2f;
+                float playerStartY = GAME_HEIGHT / 2f;
+                player.resetPosition(playerStartX, playerStartY);
+
+                System.out.println("🏜️ Bắt đầu Map 3 - Sa mạc với nhiều quái vật nhất!");
+                System.out.println("📊 Số quái đã tiêu diệt từ Map 1+2: " + killCount + " - Tiếp tục tích lũy!");
+
+            } else if (currentMapLevel == 3) {
+                // Hoàn thành Map 3 - hiển thị màn hình chiến thắng
+                System.out.println("🏆 CHIẾN THẮNG HOÀN TOÀN! Đã hoàn thành cả 3 map với " + killCount + " quái bị tiêu diệt!");
+                System.out.println("📊 FINAL KILL COUNT (3 MAPS): " + killCount);
                 game.getWinScreen().setKillCount(killCount);
                 game.setCurrentGameState(Game.GameState.WIN_SCREEN);
             }

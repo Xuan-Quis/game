@@ -25,9 +25,10 @@ public class MapManager {
     private GameMap currentMap;
     private GameMap map1; // Original outdoor map
     private GameMap map2; // Snow map
+    private GameMap map3; // Desert map (sa mạc)
     private float cameraX, cameraY;
     private Playing playing;
-    private int currentMapLevel = 1; // Track which map we're on (1 or 2)
+    private int currentMapLevel = 1; // Track which map we're on (1, 2, or 3)
 
     public MapManager(Playing playing) {
         this.playing = playing;
@@ -122,6 +123,18 @@ public class MapManager {
             currentMapLevel = 2;
             currentMap = map2;
             System.out.println("🏔️ Chuyển sang Map 2 - Snow World!");
+
+            // Reset camera to center of new map
+            float cX = MainActivity.GAME_WIDTH / 2f - (currentMap.getMapWidth() / 2f);
+            float cY = MainActivity.GAME_HEIGHT / 2f - (currentMap.getMapHeight() / 2f);
+            playing.setCameraValues(new PointF(cX, cY));
+            cameraX = cX;
+            cameraY = cY;
+        } else if (currentMapLevel == 2) {
+            // Move to desert map (map 3)
+            currentMapLevel = 3;
+            currentMap = map3;
+            System.out.println("🏜️ Chuyển sang Map 3 - Desert World!");
 
             // Reset camera to center of new map
             float cX = MainActivity.GAME_WIDTH / 2f - (currentMap.getMapWidth() / 2f);
@@ -391,7 +404,30 @@ public class MapManager {
                 {333, 418, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 330, 331},
                 {333, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 418, 330, 331},
                 {333, 418, 422, 419, 418, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 330, 331},
+                {333, 418, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 330, 331},
+                {333, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 418, 330, 331},
+                {333, 418, 422, 419, 418, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 330, 331},
                 {333, 418, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 419, 418, 418, 422, 330, 331}
+        };
+
+        // Map 3 - Desert-themed map (sa mạc) with different tile patterns
+        int[][] desertArray = {
+                {110, 114, 110, 114, 111, 110, 114, 110, 112, 114, 110, 113, 110, 114, 110, 111, 114, 110, 112, 114, 110, 113, 114},
+                {114, 110, 112, 110, 114, 111, 110, 114, 110, 113, 114, 110, 112, 110, 114, 110, 111, 114, 110, 112, 114, 110, 113},
+                {110, 113, 114, 110, 112, 114, 110, 111, 114, 110, 112, 114, 110, 113, 110, 114, 111, 110, 114, 112, 110, 114, 110},
+                {114, 110, 111, 114, 110, 112, 114, 110, 113, 110, 114, 111, 110, 114, 112, 110, 113, 114, 110, 111, 114, 110, 112},
+                {110, 112, 114, 110, 113, 110, 114, 111, 110, 114, 112, 110, 113, 114, 110, 111, 114, 110, 112, 114, 110, 113, 110},
+                {114, 110, 112, 114, 110, 111, 110, 110, 110, 110, 110, 113, 114, 110, 112, 114, 110, 111, 114, 110, 113, 110, 114},
+                {110, 113, 114, 110, 112, 114, 110, 111, 114, 110, 112, 114, 110, 113, 110, 114, 111, 110, 114, 112, 110, 114, 110},
+                {114, 110, 111, 114, 110, 112, 114, 110, 113, 110, 114, 111, 110, 114, 112, 110, 113, 114, 110, 111, 114, 110, 112},
+                {110, 112, 114, 110, 113, 110, 114, 111, 110, 114, 112, 110, 113, 114, 110, 111, 114, 110, 112, 114, 110, 113, 110},
+                {114, 110, 112, 114, 110, 111, 114, 110, 112, 110, 114, 113, 110, 111, 114, 110, 112, 114, 110, 113, 110, 114, 111},
+                {110, 113, 114, 110, 112, 114, 110, 111, 114, 110, 112, 114, 110, 113, 110, 114, 111, 110, 114, 112, 110, 114, 110},
+                {114, 110, 111, 114, 110, 112, 114, 110, 113, 110, 114, 111, 110, 114, 112, 110, 113, 114, 110, 111, 114, 110, 112},
+                {110, 112, 114, 110, 113, 110, 114, 111, 110, 114, 112, 110, 113, 114, 110, 111, 114, 110, 112, 114, 110, 113, 110},
+                {114, 110, 112, 114, 110, 111, 114, 110, 112, 110, 114, 113, 110, 111, 114, 110, 112, 114, 110, 113, 110, 114, 111},
+                {110, 113, 114, 110, 112, 114, 110, 111, 114, 110, 112, 114, 110, 113, 110, 114, 111, 110, 114, 112, 110, 114, 110},
+                {114, 110, 111, 114, 110, 112, 114, 110, 113, 110, 114, 111, 110, 114, 112, 110, 113, 114, 110, 111, 114, 110, 112}
         };
 
         // Buildings for Map 1
@@ -405,6 +441,12 @@ public class MapManager {
         buildingArrayList2.add(new Building(new PointF(1440, 160), Buildings.HOUSE_ONE));
         buildingArrayList2.add(new Building(new PointF(1540, 880), Buildings.HOUSE_TWO));
         buildingArrayList2.add(new Building(new PointF(575, 1000), Buildings.HOUSE_SIX));
+
+        // Buildings for Map 3 (Desert map) - different positions
+        ArrayList<Building> buildingArrayList3 = new ArrayList<>();
+        buildingArrayList3.add(new Building(new PointF(1440, 160), Buildings.HOUSE_ONE));
+        buildingArrayList3.add(new Building(new PointF(1540, 880), Buildings.HOUSE_TWO));
+        buildingArrayList3.add(new Building(new PointF(575, 1000), Buildings.HOUSE_SIX));
 
         // Game objects for Map 1
         ArrayList<GameObject> gameObjectArrayList1 = new ArrayList<>();
@@ -420,6 +462,13 @@ public class MapManager {
         gameObjectArrayList2.add(new GameObject(new PointF(1000, 350), GameObjects.BASKET_FULL_RED_FRUIT));
         gameObjectArrayList2.add(new GameObject(new PointF(620, 520), GameObjects.STATUE_ANGRY_YELLOW));
 
+        // Game objects for Map 3 (Desert map) - desert-themed objects
+        ArrayList<GameObject> gameObjectArrayList3 = new ArrayList<>();
+        gameObjectArrayList3.add(new GameObject(new PointF(190, 70), GameObjects.OVEN_SNOW_YELLOW));
+        gameObjectArrayList3.add(new GameObject(new PointF(580, 70), GameObjects.OVEN_SNOW_YELLOW));
+        gameObjectArrayList3.add(new GameObject(new PointF(1000, 350), GameObjects.BASKET_FULL_RED_FRUIT));
+        gameObjectArrayList3.add(new GameObject(new PointF(620, 520), GameObjects.STATUE_ANGRY_YELLOW));
+
         // Items for Map 1
         ArrayList<Item> outsideItemArrayList1 = new ArrayList<>();
         outsideItemArrayList1.add(new Item(Items.FISH, new PointF(560, 560)));
@@ -433,6 +482,14 @@ public class MapManager {
         outsideItemArrayList2.add(new Item(Items.EMPTY_POT, new PointF(600, 200)));
         outsideItemArrayList2.add(new Item(Items.MEDIPACK, new PointF(1000, 700))); // Extra medipack for harder map
 
+        // Items for Map 3 (Desert map) - more items for hardest map
+        ArrayList<Item> outsideItemArrayList3 = new ArrayList<>();
+        outsideItemArrayList3.add(new Item(Items.MEDIPACK, new PointF(350, 300)));
+        outsideItemArrayList3.add(new Item(Items.FISH, new PointF(600, 500)));
+        outsideItemArrayList3.add(new Item(Items.EMPTY_POT, new PointF(900, 200)));
+        outsideItemArrayList3.add(new Item(Items.MEDIPACK, new PointF(1100, 800)));
+        outsideItemArrayList3.add(new Item(Items.FISH, new PointF(200, 900))); // Extra items for hardest map
+
         // Enemies for Map 1 (easier)
         ArrayList<Skeleton> skeletonsOutside1 = HelpMethods.GetSkeletonsRandomized(5, outsideArray);
         ArrayList<Monster> monstersOutside1 = HelpMethods.GetMonstersRandomized(0, outsideArray);
@@ -443,11 +500,19 @@ public class MapManager {
         ArrayList<Monster> monstersOutside2 = HelpMethods.GetMonstersRandomized(3, snowArray); // Add monsters
         ArrayList<Boom> boomsOutside2 = HelpMethods.GetBoomsRandomized(5, snowArray); // More booms
 
-        // Set playing reference for booms in both maps
+        // Enemies for Map 3 (hardest - most enemies)
+        ArrayList<Skeleton> skeletonsOutside3 = HelpMethods.GetSkeletonsRandomized(12, desertArray); // Most skeletons
+        ArrayList<Monster> monstersOutside3 = HelpMethods.GetMonstersRandomized(6, desertArray); // Most monsters
+        ArrayList<Boom> boomsOutside3 = HelpMethods.GetBoomsRandomized(8, desertArray); // Most booms
+
+        // Set playing reference for booms in all maps
         for (Boom boom : boomsOutside1) {
             boom.setPlaying(playing);
         }
         for (Boom boom : boomsOutside2) {
+            boom.setPlaying(playing);
+        }
+        for (Boom boom : boomsOutside3) {
             boom.setPlaying(playing);
         }
 
@@ -475,7 +540,19 @@ public class MapManager {
                 outsideItemArrayList2
         );
 
-        // Set current map to map1
+        // Create Map 3 (Desert map)
+        map3 = new GameMap(
+                desertArray,
+                Tiles.OUTSIDE, // Reuse OUTSIDE tiles for desert theme
+                buildingArrayList3,
+                gameObjectArrayList3,
+                skeletonsOutside3,
+                monstersOutside3,
+                boomsOutside3,
+                outsideItemArrayList3
+        );
+
+        // Start with Map 1
         currentMap = map1;
 
         // Create inside maps for map1 (keeping existing functionality)

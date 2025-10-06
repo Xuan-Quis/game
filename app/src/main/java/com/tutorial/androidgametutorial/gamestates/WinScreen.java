@@ -90,9 +90,12 @@ public class WinScreen extends BaseState implements GameStateInterface {
 
         c.drawText("🏆 CHIẾN THẮNG! 🏆", GAME_WIDTH / 2f, GAME_HEIGHT / 2f - 150, titlePaint);
 
-        // Draw stats
-        c.drawText("Bạn đã sống sót 20 giây!", GAME_WIDTH / 2f, GAME_HEIGHT / 2f - 80, statsPaint);
-        c.drawText("Lần này: " + killCount + " quái bị tiêu diệt", GAME_WIDTH / 2f, GAME_HEIGHT / 2f - 30, statsPaint);
+        // Draw stats - cập nhật để hiển thị hoàn thành 3 maps
+        c.drawText("Bạn đã sống sót qua cả 3 maps!", GAME_WIDTH / 2f, GAME_HEIGHT / 2f - 100, statsPaint);
+        c.drawText("🗺️ Map 1 (Outdoor) ✅", GAME_WIDTH / 2f, GAME_HEIGHT / 2f - 70, statsPaint);
+        c.drawText("🏔️ Map 2 (Snow) ✅", GAME_WIDTH / 2f, GAME_HEIGHT / 2f - 40, statsPaint);
+        c.drawText("🏜️ Map 3 (Desert) ✅", GAME_WIDTH / 2f, GAME_HEIGHT / 2f - 10, statsPaint);
+        c.drawText("Tổng quái tiêu diệt: " + killCount + " 👹", GAME_WIDTH / 2f, GAME_HEIGHT / 2f + 20, statsPaint);
 
         // Hiển thị kỷ lục cao nhất - sử dụng giá trị trực tiếp từ LeaderboardManager
         Paint recordPaint = new Paint();
@@ -102,7 +105,7 @@ public class WinScreen extends BaseState implements GameStateInterface {
         recordPaint.setTextAlign(Paint.Align.CENTER);
 
         int bestScore = leaderboardManager.getBestScore();
-        c.drawText("🥇 KỶ LỤC CÁ NHÂN: " + bestScore + " quái", GAME_WIDTH / 2f, GAME_HEIGHT / 2f + 20, recordPaint);
+        c.drawText("🥇 KỶ LỤC CÁ NHÂN: " + bestScore + " quái", GAME_WIDTH / 2f, GAME_HEIGHT / 2f + 50, recordPaint);
 
         // Debug info (có thể bỏ sau khi test xong)
         Paint debugPaint = new Paint();
