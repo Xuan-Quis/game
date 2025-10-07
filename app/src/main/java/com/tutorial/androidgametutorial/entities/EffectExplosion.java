@@ -4,7 +4,6 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 
 import com.tutorial.androidgametutorial.entities.enemies.Boom;
-import com.tutorial.androidgametutorial.entities.enemies.Monster;
 import com.tutorial.androidgametutorial.entities.enemies.Skeleton;
 import com.tutorial.androidgametutorial.gamestates.Playing;
 
@@ -102,29 +101,7 @@ public class EffectExplosion {
                 }
             }
         }
-        
-        // Kiểm tra va chạm với Monster
-        if (playing.getMapManager().getCurrentMap().getMonsterArrayList() != null) {
-            for (Monster monster : playing.getMapManager().getCurrentMap().getMonsterArrayList()) {
-                if (!monster.isActive()) continue;
-                if (RectF.intersects(projectile.getHitbox(), monster.getHitbox())) {
-                    monster.damageCharacter(damage);
-                    if (monster.getCurrentHealth() <= 0) {
-                        monster.setMonsterInactive();
-                        playing.enemyKilled(); // THÊM DÒNG NÀY để tăng killCount
-                        System.out.println("💀 Monster chết bởi EffectExplosion! Kill count tăng!");
-                        // Thử drop item khi monster chết bởi EffectExplosion
-                        com.tutorial.androidgametutorial.entities.items.Item droppedItem = com.tutorial.androidgametutorial.helpers.HelpMethods.tryDropItem(new PointF(monster.getHitbox().centerX(), monster.getHitbox().centerY()));
-                        if (droppedItem != null) {
-                            playing.getMapManager().getCurrentMap().getItemArrayList().add(droppedItem);
-                            System.out.println("🎁 Monster chết bởi EffectExplosion! Drop item: " + droppedItem.getItemType());
-                        }
-                    }
-                    projectile.explode();
-                    break;
-                }
-            }
-        }
+
         
         // Kiểm tra va chạm với Boom
         if (playing.getMapManager().getCurrentMap().getBoomArrayList() != null) {

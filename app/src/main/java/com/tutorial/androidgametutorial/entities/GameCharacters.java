@@ -11,24 +11,30 @@ import com.tutorial.androidgametutorial.helpers.interfaces.BitmapMethods;
 
 public enum GameCharacters implements BitmapMethods {
 
-    PLAYER(R.drawable.player_spritesheet),
-    SKELETON(R.drawable.skeleton_spritesheet),
-    MONSTER(R.drawable.taur_monter),
-    BOOM(R.drawable.boom_smile);
-
-
+    PLAYER(R.drawable.player_spritesheet, 7, 4),
+    SKELETON(R.drawable.skeleton_spritesheet, 7, 4),
+    BOOM(R.drawable.boom_smile, 1, 1),
+    BOSS(R.drawable.boss_dungyen, 1, 6); // Boss sprite 1x6
 
     private Bitmap spriteSheet;
-    private Bitmap[][] sprites = new Bitmap[7][4];
+    private Bitmap[][] sprites;
+    private BitmapFactory.Options options = new BitmapFactory.Options();
+    private final int rows;
+    private final int cols;
 
-
-    GameCharacters(int resID) {
+    GameCharacters(int resID, int rows, int cols) {
+        this.rows = rows;
+        this.cols = cols;
         options.inScaled = false;
         spriteSheet = BitmapFactory.decodeResource(MainActivity.getGameContext().getResources(), resID, options);
-        for (int j = 0; j < sprites.length; j++)
-            for (int i = 0; i < sprites[j].length; i++)
+        sprites = new Bitmap[rows][cols];
+        for (int j = 0; j < rows; j++)
+            for (int i = 0; i < cols; i++)
                 sprites[j][i] = getScaledBitmap(Bitmap.createBitmap(spriteSheet, GameConstants.Sprite.DEFAULT_SIZE * i, GameConstants.Sprite.DEFAULT_SIZE * j, GameConstants.Sprite.DEFAULT_SIZE, GameConstants.Sprite.DEFAULT_SIZE));
     }
+
+    public int getRows() { return rows; }
+    public int getCols() { return cols; }
 
     public Bitmap getSpriteSheet() {
         return spriteSheet;

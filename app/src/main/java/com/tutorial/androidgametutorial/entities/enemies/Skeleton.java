@@ -32,8 +32,8 @@ public class Skeleton extends Character {
     private boolean hasDroppedItem = false;
 
 
-    public Skeleton(PointF pos) {
-        super(pos, GameCharacters.SKELETON);
+    public Skeleton(PointF pos, GameCharacters type) {
+        super(pos, type);
         setStartHealth(100);
     }
 

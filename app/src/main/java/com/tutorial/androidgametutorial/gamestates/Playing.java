@@ -17,6 +17,7 @@ import android.view.MotionEvent;
 import com.tutorial.androidgametutorial.entities.Building;
 import com.tutorial.androidgametutorial.entities.Character;
 import com.tutorial.androidgametutorial.entities.Entity;
+import com.tutorial.androidgametutorial.entities.GameCharacters;
 import com.tutorial.androidgametutorial.entities.GameObject;
 import com.tutorial.androidgametutorial.entities.Player;
 import com.tutorial.androidgametutorial.entities.Projectile;
@@ -24,7 +25,6 @@ import com.tutorial.androidgametutorial.entities.Weapons;
 import com.tutorial.androidgametutorial.entities.EffectExplosion;
 import com.tutorial.androidgametutorial.entities.SparkSkill;
 import com.tutorial.androidgametutorial.entities.enemies.Boom;
-import com.tutorial.androidgametutorial.entities.enemies.Monster;
 import com.tutorial.androidgametutorial.entities.enemies.Skeleton;
 import com.tutorial.androidgametutorial.entities.items.Item;
 import com.tutorial.androidgametutorial.environments.Doorway;
@@ -177,20 +177,6 @@ public class Playing extends BaseState implements GameStateInterface {
                         }
                     }
                 }
-        if (mapManager.getCurrentMap().getMonsterArrayList() != null)
-            for (Monster monster : mapManager.getCurrentMap().getMonsterArrayList())
-                if (monster.isActive()) {
-                    monster.update(delta, mapManager.getCurrentMap(), player, cameraX, cameraY, this);
-                    if (monster.isAttacking()) {
-                        if (!monster.isAttackChecked()) {
-                            checkEnemyAttack(monster);
-                        }
-                    } else if (!monster.isPreparingAttack()) {
-                        if (HelpMethods.IsPlayerCloseForAttack(monster, player, cameraY, cameraX)) {
-                            monster.prepareAttack(player, cameraX, cameraY);
-                        }
-                    }
-                }
 
         if (mapManager.getCurrentMap().getBoomArrayList() != null)
             for (Boom boom : mapManager.getCurrentMap().getBoomArrayList())
@@ -340,41 +326,6 @@ public class Playing extends BaseState implements GameStateInterface {
             }
         }
 
-        // Check Monster (tách riêng khỏi vòng lặp Skeleton)
-        if (mapManager.getCurrentMap().getMonsterArrayList() != null) {
-            System.out.println("👹 Có " + mapManager.getCurrentMap().getMonsterArrayList().size() + " Monster");
-            for (Monster m : mapManager.getCurrentMap().getMonsterArrayList()) {
-                System.out.println("🔍 Kiểm tra Monster tại: (" + m.getHitbox().centerX() + ", " + m.getHitbox().centerY() + ") - HP: " + m.getCurrentHealth());
-                if (attackBoxWithoutCamera.intersects(
-                        m.getHitbox().left,
-                        m.getHitbox().top,
-                        m.getHitbox().right,
-                        m.getHitbox().bottom)) {
-
-                    System.out.println("💥 HIT Monster! Damage: " + player.getDamage());
-                    m.damageCharacter(player.getDamage());
-                    playSwordHit();
-
-                    if (m.getCurrentHealth() <= 0) {
-                        m.setMonsterInactive();
-                        enemyKilled(); // Sử dụng method thống nhất thay vì killCount++ trực tiếp
-                        System.out.println("💀 Monster đã chết! Kill count: " + killCount);
-                        // Chỉ drop item nếu chưa drop (tránh drop nhiều lần)
-                        if (!m.hasDroppedItem()) {
-                            m.setHasDroppedItem(true);
-                            Item droppedItem = HelpMethods.tryDropItem(new PointF(m.getHitbox().centerX(), m.getHitbox().centerY()));
-                            if (droppedItem != null) {
-                                mapManager.getCurrentMap().getItemArrayList().add(droppedItem);
-                                System.out.println("🎁 Monster chết! Drop item: " + droppedItem.getItemType());
-                            } else {
-                                System.out.println("❌ Monster chết nhưng không drop item");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         // Check Boom (thêm logic tấn công Boom)
         if (mapManager.getCurrentMap().getBoomArrayList() != null) {
             System.out.println("💥 Có " + mapManager.getCurrentMap().getBoomArrayList().size() + " Boom");
@@ -486,7 +437,6 @@ public class Playing extends BaseState implements GameStateInterface {
 
             // KIỂM tra NULL trước khi spawn để tránh crash
             if (mapManager.getCurrentMap().getSkeletonArrayList() == null ||
-                    mapManager.getCurrentMap().getMonsterArrayList() == null ||
                     mapManager.getCurrentMap().getBoomArrayList() == null) {
                 System.out.println("❌ Một hoặc nhiều ArrayList enemies là null - không thể spawn");
                 return;
@@ -504,13 +454,9 @@ public class Playing extends BaseState implements GameStateInterface {
                 // Chọn loại quái random
                 double random = Math.random();
                 if (random < 0.4) { // 40% Skeleton
-                    Skeleton skeleton = new Skeleton(new PointF(spawnX, spawnY));
+                    Skeleton skeleton = new Skeleton(new PointF(spawnX, spawnY), GameCharacters.SKELETON);
                     mapManager.getCurrentMap().getSkeletonArrayList().add(skeleton);
                     System.out.println("👹 Spawn Skeleton tại: (" + spawnX + ", " + spawnY + ") - Total Skeleton: " + mapManager.getCurrentMap().getSkeletonArrayList().size());
-                } else if (random < 0.7) { // 30% Monster
-                    Monster monster = new Monster(new PointF(spawnX, spawnY));
-                    mapManager.getCurrentMap().getMonsterArrayList().add(monster);
-                    System.out.println("👹 Spawn Monster tại: (" + spawnX + ", " + spawnY + ") - Total Monster: " + mapManager.getCurrentMap().getMonsterArrayList().size());
                 } else { // 30% Boom
                     Boom boom = new Boom(new PointF(spawnX, spawnY));
                     boom.setPlaying(this); // Set playing reference
@@ -597,9 +543,6 @@ public class Playing extends BaseState implements GameStateInterface {
                 mapManager.drawItem(c, item);
             } else if (e instanceof Player) {
                 drawPlayer(c);
-            } else if (e instanceof Monster monster) {
-                if (monster.isActive())
-                    drawCharacter(c, monster);
             } else if (e instanceof Boom boom) {
                 if (boom.isActive())
                     drawBoom(c, boom);
@@ -898,35 +841,6 @@ public class Playing extends BaseState implements GameStateInterface {
                                 if (droppedItem != null) {
                                     mapManager.getCurrentMap().getItemArrayList().add(droppedItem);
                                     System.out.println("🎁 Skeleton chết bởi Throw Sword! Drop item: " + droppedItem.getItemType());
-                                }
-                            }
-                        }
-                        p.deactivate();
-                        break;
-                    }
-                }
-            }
-
-            // check va chạm với monster
-            if (mapManager.getCurrentMap().getMonsterArrayList() != null) {
-                for (Monster m : mapManager.getCurrentMap().getMonsterArrayList()) {
-                    if (!m.isActive()) continue;
-                    if (RectF.intersects(p.getHitbox(), m.getHitbox())) {
-                        int halfMaxHp = m.getMaxHealth() / 2;
-                        m.damageCharacter(halfMaxHp);
-                        // Thêm hiệu ứng nổ tại vị trí quái bị trúng
-                        explosionEffects.add(new ExplosionEffect(new PointF(m.getHitbox().centerX(), m.getHitbox().centerY())));
-                        if (m.getCurrentHealth() <= 0) {
-                            m.setMonsterInactive();
-                            enemyKilled(); // Sử dụng method thống nhất thay vì killCount++ trực tiếp
-                            System.out.println("💀 Monster đã chết! Kill count: " + killCount);
-                            // Chỉ drop item nếu chưa drop (tránh drop nhiều lần)
-                            if (!m.hasDroppedItem()) {
-                                m.setHasDroppedItem(true);
-                                Item droppedItem = HelpMethods.tryDropItem(new PointF(m.getHitbox().centerX(), m.getHitbox().centerY()));
-                                if (droppedItem != null) {
-                                    mapManager.getCurrentMap().getItemArrayList().add(droppedItem);
-                                    System.out.println("🎁 Monster chết bởi Throw Sword! Drop item: " + droppedItem.getItemType());
                                 }
                             }
                         }

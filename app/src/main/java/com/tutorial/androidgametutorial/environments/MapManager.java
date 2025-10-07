@@ -9,7 +9,6 @@ import com.tutorial.androidgametutorial.entities.Buildings;
 import com.tutorial.androidgametutorial.entities.GameObject;
 import com.tutorial.androidgametutorial.entities.GameObjects;
 import com.tutorial.androidgametutorial.entities.enemies.Boom;
-import com.tutorial.androidgametutorial.entities.enemies.Monster;
 import com.tutorial.androidgametutorial.entities.enemies.Skeleton;
 import com.tutorial.androidgametutorial.entities.items.Item;
 import com.tutorial.androidgametutorial.entities.items.Items;
@@ -157,9 +156,7 @@ public class MapManager {
         if (currentMap.getSkeletonArrayList() != null) {
             currentMap.getSkeletonArrayList().clear();
         }
-        if (currentMap.getMonsterArrayList() != null) {
-            currentMap.getMonsterArrayList().clear();
-        }
+
         if (currentMap.getBoomArrayList() != null) {
             currentMap.getBoomArrayList().clear();
         }
@@ -298,7 +295,6 @@ public class MapManager {
         // Khởi tạo quái Skeleton, Monster và Boom
 // spawn skeletons, monsters & booms
         ArrayList<Skeleton> skeletonsOutside = HelpMethods.GetSkeletonsRandomized(5, outsideArray);
-        ArrayList<Monster> monstersOutside = HelpMethods.GetMonstersRandomized(0, outsideArray);
         ArrayList<Boom> boomsOutside = HelpMethods.GetBoomsRandomized(3, outsideArray);
 
 // inside maps (skeletons only)
@@ -308,7 +304,6 @@ public class MapManager {
                 null,
                 null,
                 HelpMethods.GetSkeletonsRandomized(2, insideArray), // skeletons
-                null, // monsters
                 null, // booms
                 null  // items
         );
@@ -319,7 +314,6 @@ public class MapManager {
                 null,
                 null,
                 null, // skeletons
-                null, // monsters
                 null, // booms
                 null  // items
         );
@@ -330,7 +324,6 @@ public class MapManager {
                 null,
                 null,
                 null, // skeletons
-                null, // monsters
                 null, // booms
                 null  // items
         );
@@ -342,7 +335,6 @@ public class MapManager {
                 buildingArrayList,
                 gameObjectArrayList,
                 skeletonsOutside,
-                monstersOutside,
                 boomsOutside,
                 outsideItemArrayList
         );
@@ -492,17 +484,14 @@ public class MapManager {
 
         // Enemies for Map 1 (easier)
         ArrayList<Skeleton> skeletonsOutside1 = HelpMethods.GetSkeletonsRandomized(5, outsideArray);
-        ArrayList<Monster> monstersOutside1 = HelpMethods.GetMonstersRandomized(0, outsideArray);
         ArrayList<Boom> boomsOutside1 = HelpMethods.GetBoomsRandomized(3, outsideArray);
 
         // Enemies for Map 2 (harder - more enemies)
         ArrayList<Skeleton> skeletonsOutside2 = HelpMethods.GetSkeletonsRandomized(8, snowArray); // More skeletons
-        ArrayList<Monster> monstersOutside2 = HelpMethods.GetMonstersRandomized(3, snowArray); // Add monsters
         ArrayList<Boom> boomsOutside2 = HelpMethods.GetBoomsRandomized(5, snowArray); // More booms
 
         // Enemies for Map 3 (hardest - most enemies)
         ArrayList<Skeleton> skeletonsOutside3 = HelpMethods.GetSkeletonsRandomized(12, desertArray); // Most skeletons
-        ArrayList<Monster> monstersOutside3 = HelpMethods.GetMonstersRandomized(6, desertArray); // Most monsters
         ArrayList<Boom> boomsOutside3 = HelpMethods.GetBoomsRandomized(8, desertArray); // Most booms
 
         // Set playing reference for booms in all maps
@@ -523,7 +512,6 @@ public class MapManager {
                 buildingArrayList1,
                 gameObjectArrayList1,
                 skeletonsOutside1,
-                monstersOutside1,
                 boomsOutside1,
                 outsideItemArrayList1
         );
@@ -535,7 +523,6 @@ public class MapManager {
                 buildingArrayList2,
                 gameObjectArrayList2,
                 skeletonsOutside2,
-                monstersOutside2,
                 boomsOutside2,
                 outsideItemArrayList2
         );
@@ -547,7 +534,6 @@ public class MapManager {
                 buildingArrayList3,
                 gameObjectArrayList3,
                 skeletonsOutside3,
-                monstersOutside3,
                 boomsOutside3,
                 outsideItemArrayList3
         );
@@ -594,7 +580,6 @@ public class MapManager {
                 null,
                 HelpMethods.GetSkeletonsRandomized(2, insideArray),
                 null,
-                null,
                 null
         );
 
@@ -605,14 +590,12 @@ public class MapManager {
                 null,
                 null,
                 null,
-                null,
                 null
         );
 
         GameMap insideGreenRoofHouseMap = new GameMap(
                 insideGreenRoofHouseArr,
                 Tiles.INSIDE,
-                null,
                 null,
                 null,
                 null,

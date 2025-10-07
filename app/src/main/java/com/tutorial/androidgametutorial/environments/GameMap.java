@@ -5,7 +5,6 @@ import com.tutorial.androidgametutorial.entities.Building;
 import com.tutorial.androidgametutorial.entities.Entity;
 import com.tutorial.androidgametutorial.entities.GameObject;
 import com.tutorial.androidgametutorial.entities.enemies.Boom;
-import com.tutorial.androidgametutorial.entities.enemies.Monster;
 import com.tutorial.androidgametutorial.entities.enemies.Skeleton;
 import com.tutorial.androidgametutorial.entities.items.Item;
 import com.tutorial.androidgametutorial.helpers.GameConstants;
@@ -21,20 +20,18 @@ public class GameMap {
     private ArrayList<Doorway> doorwayArrayList;
     private ArrayList<GameObject> gameObjectArrayList;
     private ArrayList<Skeleton> skeletonArrayList;
-    private ArrayList<Monster> monsterArrayList;
     private ArrayList<Boom> boomArrayList;
 
     private ArrayList<Item> itemArrayList;
 
     public GameMap(int[][] spriteIds, Tiles tilesType, ArrayList<Building> buildingArrayList,
                    ArrayList<GameObject> gameObjectArrayList, ArrayList<Skeleton> skeletonArrayList,
-                   ArrayList<Monster> monsterArrayList, ArrayList<Boom> boomArrayList, ArrayList<Item> itemArrayList) {
+                    ArrayList<Boom> boomArrayList, ArrayList<Item> itemArrayList) {
         this.spriteIds = spriteIds;
         this.tilesType = tilesType;
         this.buildingArrayList = buildingArrayList;
         this.gameObjectArrayList = gameObjectArrayList;
         this.skeletonArrayList = skeletonArrayList;
-        this.monsterArrayList = monsterArrayList;
         this.boomArrayList = boomArrayList;
         this.doorwayArrayList = new ArrayList<>();
         this.itemArrayList = itemArrayList;
@@ -57,9 +54,6 @@ public class GameMap {
         if (itemArrayList != null)
             for (Item item : itemArrayList)
                 list[i++] = item;
-        if (monsterArrayList != null)
-            for (Monster m : monsterArrayList)
-                list[i++] = m;
         if (boomArrayList != null)
             for (Boom b : boomArrayList)
                 list[i++] = b;
@@ -77,8 +71,6 @@ public class GameMap {
             amount += skeletonArrayList.size();
         if (itemArrayList != null)
             amount += itemArrayList.size();
-        if (monsterArrayList != null)
-            amount += monsterArrayList.size();
         if (boomArrayList != null)
             amount += boomArrayList.size();
         amount++; //Player
@@ -105,9 +97,6 @@ public class GameMap {
 
     public ArrayList<Skeleton> getSkeletonArrayList() {
         return skeletonArrayList;
-    }
-    public ArrayList<Monster> getMonsterArrayList() {
-        return monsterArrayList;
     }
 
     public ArrayList<Boom> getBoomArrayList() {
