@@ -129,6 +129,7 @@ public class MapManager {
             playing.setCameraValues(new PointF(cX, cY));
             cameraX = cX;
             cameraY = cY;
+            playing.spawnBoss();
         } else if (currentMapLevel == 2) {
             // Move to desert map (map 3)
             currentMapLevel = 3;
@@ -141,6 +142,8 @@ public class MapManager {
             playing.setCameraValues(new PointF(cX, cY));
             cameraX = cX;
             cameraY = cY;
+            playing.spawnBoss();
+
         }
     }
 

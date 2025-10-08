@@ -13,9 +13,7 @@ public enum GameCharacters implements BitmapMethods {
 
     PLAYER(R.drawable.player_spritesheet, 7, 4),
     SKELETON(R.drawable.skeleton_spritesheet, 7, 4),
-    BOOM(R.drawable.boom_smile, 1, 1),
-    BOSS(R.drawable.boss_dungyen, 1, 6); // Boss sprite 1x6
-
+    BOOM(R.drawable.boom_smile, 1, 1);
     private Bitmap spriteSheet;
     private Bitmap[][] sprites;
     private BitmapFactory.Options options = new BitmapFactory.Options();

@@ -52,7 +52,6 @@ public abstract class Character extends Entity {
     private int setAttackDamage() {
         return switch (gameCharType) {
             case PLAYER -> 10;
-//            case PLAYER -> 50;
             case SKELETON -> 25;
             case BOOM -> 100;
         };
