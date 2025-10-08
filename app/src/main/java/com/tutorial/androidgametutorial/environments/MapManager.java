@@ -118,33 +118,21 @@ public class MapManager {
 
     public void progressToNextMap() {
         if (currentMapLevel == 1) {
-            // Move to snow map (map 2)
             currentMapLevel = 2;
             currentMap = map2;
             System.out.println("🏔️ Chuyển sang Map 2 - Snow World!");
-
-            // Reset camera to center of new map
-            float cX = MainActivity.GAME_WIDTH / 2f - (currentMap.getMapWidth() / 2f);
-            float cY = MainActivity.GAME_HEIGHT / 2f - (currentMap.getMapHeight() / 2f);
-            playing.setCameraValues(new PointF(cX, cY));
-            cameraX = cX;
-            cameraY = cY;
-            playing.spawnBoss();
         } else if (currentMapLevel == 2) {
-            // Move to desert map (map 3)
             currentMapLevel = 3;
             currentMap = map3;
             System.out.println("🏜️ Chuyển sang Map 3 - Desert World!");
-
-            // Reset camera to center of new map
-            float cX = MainActivity.GAME_WIDTH / 2f - (currentMap.getMapWidth() / 2f);
-            float cY = MainActivity.GAME_HEIGHT / 2f - (currentMap.getMapHeight() / 2f);
-            playing.setCameraValues(new PointF(cX, cY));
-            cameraX = cX;
-            cameraY = cY;
-            playing.spawnBoss();
-
         }
+
+        // Căn camera vào giữa map mới
+        float cX = MainActivity.GAME_WIDTH / 2f - (currentMap.getMapWidth() / 2f);
+        float cY = MainActivity.GAME_HEIGHT / 2f - (currentMap.getMapHeight() / 2f);
+        playing.setCameraValues(new PointF(cX, cY));
+        cameraX = cX;
+        cameraY = cY;
     }
 
     // Method to reset map progression back to Map 1
