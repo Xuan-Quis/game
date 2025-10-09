@@ -479,9 +479,35 @@ public class Playing extends BaseState implements GameStateInterface {
             return; // Thoát ngay nếu đang ở trong nhà
         }
 
-        // Spawn quái vô hạn - kiểm tra mỗi 3 giây
+        // Lấy level hiện tại để điều chỉnh spawn
+        int currentLevel = mapManager.getCurrentMapLevel();
+
+        // Điều chỉnh thời gian spawn và số lượng theo level
+        long spawnInterval;
+        int spawnCount;
+
+        switch (currentLevel) {
+            case 1: // Màn 1 - Spawn ít nhất
+                spawnInterval = 3000; // 3 giây
+                spawnCount = 2; // 1 quái mỗi lần
+                break;
+            case 2: // Màn 2 - Snow World - Spawn nhiều hơn
+                spawnInterval = 2000; // 2 giây (nhanh hơn)
+                spawnCount = 3; // 2 quái mỗi lần
+                break;
+            case 3: // Màn 3 - Desert World - Spawn nhiều nhất
+                spawnInterval = 1000; // 1.5 giây (nhanh nhất)
+                spawnCount = 4; // 3 quái mỗi lần
+                break;
+            default:
+                spawnInterval = 3000;
+                spawnCount = 1;
+                break;
+        }
+
+        // Spawn quái theo thời gian interval của từng màn
         long currentTime = System.currentTimeMillis();
-        if (currentTime - lastSpawnTime >= 3000) { // 3 giây spawn 1 lần
+        if (currentTime - lastSpawnTime >= spawnInterval) {
             lastSpawnTime = currentTime;
 
             // KIỂM tra NULL trước khi spawn để tránh crash
@@ -492,9 +518,7 @@ public class Playing extends BaseState implements GameStateInterface {
                 return;
             }
 
-            // Spawn 1 quái mỗi lần để tránh drop item trùng lặp
-            int spawnCount = 1; // Chỉ spawn 1 quái mỗi lần
-            System.out.println("🔄 Spawn " + spawnCount + " enemy(ies) ở map ngoài");
+            System.out.println("🔄 Màn " + currentLevel + " - Spawn " + spawnCount + " enemy(ies) ở map ngoài");
 
             for (int i = 0; i < spawnCount; i++) {
                 // Spawn ở vị trí random xung quanh player
